@@ -1,0 +1,1 @@
+# Stub caching helper

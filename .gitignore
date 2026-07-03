@@ -1,0 +1,30 @@
+# Dependency directories
+node_modules/
+venv/
+.venv/
+env/
+.env
+__pycache__/
+*.pyc
+
+# Database files
+db.sqlite3
+
+# IDE / Editor configurations
+.vscode/
+.idea/
+
+# Build outputs
+client/dist/
+client/build/
+
+# Local uploads (don't commit files, keep directories via .gitkeep)
+server/uploads/previews/*
+!server/uploads/previews/.gitkeep
+server/uploads/code/*
+!server/uploads/code/.gitkeep
+
+# System / Log files
+*.log
+.DS_Store
+Thumbs.db
