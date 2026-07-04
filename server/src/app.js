@@ -21,7 +21,7 @@ app.use('/api/admin', require('./routes/adminRoutes'));
 
 // Root endpoint
 app.get('/', (req, res) => {
-  res.json({ message: "Welcome to UI/UX Component Marketplace API" });
+  res.json({ message: "Welcome to NeuroUX Component Marketplace API" });
 });
 
 // Centralized error handler

@@ -1,7 +1,7 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "UI/UX Component Marketplace Core Backend",
+  "description": "NeuroUX Component Marketplace Core Backend",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
