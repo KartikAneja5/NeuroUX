@@ -1,7 +1,9 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
+import useAuth from '../../hooks/useAuth';
+
 export default function AdminRoute({ children }) {
-  const token = localStorage.getItem('token');
-  const role = localStorage.getItem('role');
-  return (token && role === 'admin') ? children : <Navigate to="/" />;
-}
+  const { user, token, loading } = useAuth();
+  
+  if (loading) return <div>Loading session...</div>;
+  return (token && user?.role === 'admin') ? children : <Navigate to="/" />;}
