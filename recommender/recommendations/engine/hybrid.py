@@ -1,8 +1,14 @@
 from .content_based import get_content_scores
 from .collaborative import get_collaborative_scores
 from ..db.data_access import get_products
+from .cache import recommendation_cache
 
 def get_hybrid_recommendations(product_id, top_n=6):
+    cache_key = f"hybrid_{product_id}_{top_n}"
+    cached_result = recommendation_cache.get(cache_key)
+    if cached_result is not None:
+        return cached_result
+
     # Fetch all active products
     df_prod = get_products()
     if df_prod.empty:
@@ -41,5 +47,8 @@ def get_hybrid_recommendations(product_id, top_n=6):
     # Sort descending by score
     hybrid_list.sort(key=lambda x: x['score'], reverse=True)
     
+    result = hybrid_list[:top_n]
+    recommendation_cache.set(cache_key, result)
+    
     # Return top N products
-    return hybrid_list[:top_n]
+    return result
