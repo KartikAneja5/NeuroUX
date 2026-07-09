@@ -29,6 +29,10 @@ def get_hybrid_recommendations(product_id, top_n=6):
         if pid == product_id:
             continue
             
+        # If a product has no content or collaborative scores, skip it
+        if pid not in content_scores and pid not in collab_scores:
+            continue
+            
         c_score = content_scores.get(pid, 0.0)
         cf_score = collab_scores.get(pid, 0.0)
         
