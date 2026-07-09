@@ -1,45 +1,20 @@
-import React from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { AuthProvider } from './context/AuthContext'
-
-// Pages
-import HomePage from './pages/HomePage'
-import LoginPage from './pages/LoginPage'
-import RegisterPage from './pages/RegisterPage'
-import VerifyEmailPage from './pages/VerifyEmailPage'
-import ForgotPasswordPage from './pages/ForgotPasswordPage'
-import ResetPasswordPage from './pages/ResetPasswordPage'
-import AdminDashboardPage from './pages/admin/AdminDashboardPage'
-
-// Routing Guards
-import ProtectedRoute from './components/common/ProtectedRoute'
-import AdminRoute from './components/common/AdminRoute'
+import { BrowserRouter } from 'react-router-dom';
+import AppRoutes from './routes/AppRoutes';
+import Navbar from './components/layout/Navbar';
+import Footer from './components/layout/Footer';
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
-          
-          {/* Protected Admin Routes */}
-          <Route 
-            path="/admin" 
-            element={
-              <AdminRoute>
-                <AdminDashboardPage />
-              </AdminRoute>
-            } 
-          />
-        </Routes>
-      </Router>
-    </AuthProvider>
-  )
+    <BrowserRouter>
+      <div className="flex flex-col min-h-screen bg-slate-50 text-slate-900 font-sans">
+        <Navbar />
+        <main className="flex-grow">
+          <AppRoutes />
+        </main>
+        <Footer />
+      </div>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
