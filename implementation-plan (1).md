@@ -313,7 +313,7 @@ server/uploads/
 - Email verification flow: on register, generate a token (crypto random or short-lived JWT), store in `verificationToken`, email a link `client/verify/:token` → frontend calls `POST /api/auth/verify/:token` → Node marks `isVerified: true`.
 - Password reset: same pattern with `resetPasswordToken` + `resetPasswordExpires` (e.g. 1 hour TTL).
 
-### 6.3 Node REST API Summary
+ ### 6.3 Node REST API Summary
 
 | Method | Route | Purpose |
 |---|---|---|
@@ -337,6 +337,7 @@ server/uploads/
 | GET | `/api/admin/analytics` | Revenue, top products, order counts |
 
 ---
+
 
 ## 7. `recommender/` — Django + DRF Recommendation Microservice
 
