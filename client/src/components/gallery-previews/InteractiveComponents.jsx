@@ -444,9 +444,49 @@ export function AnimatedList() {
   );
 }
 
+// 19. CLICK SPARK
+export function ClickSpark() {
+  const [sparks, setSparks] = useState([]);
+  
+  const handleClick = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const newSpark = { id: Date.now() + Math.random(), x, y };
+    setSparks((prev) => [...prev, newSpark]);
+    setTimeout(() => {
+      setSparks((prev) => prev.filter(s => s.id !== newSpark.id));
+    }, 800);
+  };
+
+  return (
+    <div onClick={handleClick} className="w-full h-48 border border-white/5 bg-zinc-900/50 rounded-xl relative overflow-hidden flex items-center justify-center cursor-crosshair select-none">
+      <span className="text-sm text-[#8b7fb5]">Click anywhere inside this viewport to trigger sparks</span>
+      {sparks.map(s => (
+        <span 
+          key={s.id}
+          className="absolute w-4 h-4 bg-violet-400 rounded-full animate-ping pointer-events-none"
+          style={{ left: s.x - 8, top: s.y - 8 }}
+        />
+      ))}
+    </div>
+  );
+}
+
 // Helper switcher component to render a preview by product id
-export default function ComponentPreviewSwitcher({ productId }) {
-  switch (productId) {
+export default function ComponentPreviewSwitcher({ productId, productName }) {
+  const getTargetId = () => {
+    if (productId && typeof productId === 'string' && !productId.match(/^[0-9a-fA-F]{24}$/)) {
+      return productId.toLowerCase().trim();
+    }
+    if (productName) {
+      return productName.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    }
+    return productId;
+  };
+  const targetId = getTargetId();
+
+  switch (targetId) {
     case 'split-text':
       return <BlurText text="SPLIT TEXT REVEAL" duration={0.4} />;
     case 'blur-text':
@@ -521,6 +561,20 @@ export default function ComponentPreviewSwitcher({ productId }) {
       return <SpotlightCard />;
     case 'decay-card':
       return <DecayCard />;
+    case 'magic-bento':
+    case 'magic-bento-grid':
+      return (
+        <div className="w-full text-center py-8">
+          <span className="text-lg font-bold text-violet-400">🍱 Bento Grid Visualizer</span>
+        </div>
+      );
+    case 'dock':
+    case 'macos-dock':
+      return (
+        <div className="w-full text-center py-8">
+          <span className="text-lg font-bold text-violet-400">💻 macOS Interactive Dock</span>
+        </div>
+      );
     case 'particles':
       return <div className="w-full h-48 relative"><ParticlesBg /></div>;
     case 'waves':
@@ -542,3 +596,4 @@ export default function ComponentPreviewSwitcher({ productId }) {
       );
   }
 }
+

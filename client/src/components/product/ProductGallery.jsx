@@ -48,7 +48,7 @@ export default function ProductGallery({ productId, mainImage, title }) {
           <div className="relative w-full h-full flex items-center justify-center bg-zinc-950 rounded-xl overflow-hidden border border-white/5 p-6">
             <div className="absolute inset-0 dot-grid-fine opacity-10 pointer-events-none" />
             <div className="relative z-10 w-full flex justify-center">
-              <ComponentPreviewSwitcher productId={productId} />
+              <ComponentPreviewSwitcher productId={productId} productName={title} />
             </div>
             
             {/* Overlay indicators */}

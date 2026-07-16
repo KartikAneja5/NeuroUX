@@ -1,7 +1,8 @@
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { dummyProducts } from '../../data/dummyData';
 import ProductCard from '../product/ProductCard';
+import { getProducts } from '../../api/productApi';
 
 const containerVariants = {
   hidden: {},
@@ -14,6 +15,34 @@ const itemVariants = {
 };
 
 export default function TrendingProducts() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTrending = async () => {
+      try {
+        const response = await getProducts({ limit: 4 });
+        const dbProducts = response.data.products || [];
+        const mappedProducts = dbProducts.map(p => ({
+          ...p,
+          id: p._id,
+          categoryId: p.category.toLowerCase().replace(/\s+/g, '-'),
+          rating: p.rating || 5.0,
+          reviews: p.reviews || 1,
+          author: p.author || { name: 'NeuroUX Team', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=NeuroUX' }
+        }));
+        setProducts(mappedProducts);
+      } catch (err) {
+        console.error("Failed to load trending products:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTrending();
+  }, []);
+
+  if (loading || products.length === 0) return null;
+
   return (
     <section className="py-24 bg-[#080712] relative overflow-hidden">
       {/* Glow accent */}
@@ -38,7 +67,7 @@ export default function TrendingProducts() {
           whileInView="visible"
           viewport={{ once: true, margin: '-50px' }}
         >
-          {dummyProducts.slice(0, 4).map((product) => (
+          {products.map((product) => (
             <motion.div key={product.id} variants={itemVariants}>
               <ProductCard product={product} />
             </motion.div>

@@ -58,14 +58,26 @@ exports.getProductById = asyncHandler(async (req, res) => {
 });
 
 exports.createProduct = asyncHandler(async (req, res) => {
-  const { name, category, price, tags, description, livePreviewUrl, framework } = req.body;
+  const { name, category, price, tags, description, livePreviewUrl, framework, previewImageUrl: bodyPreview, codeFileUrl: bodyCode, code } = req.body;
 
   if (!name || !category || !price) {
     return res.status(400).json({ message: "Name, category, and price are required." });
   }
 
-  if (!req.files || !req.files.preview || !req.files.code) {
-    return res.status(400).json({ message: "Both preview image and code bundle files are required." });
+  let previewImageUrl = bodyPreview || '';
+  let codeFileUrl = bodyCode || '';
+
+  if (req.files) {
+    if (req.files.preview && req.files.preview[0]) {
+      previewImageUrl = `${SERVER_BASE_URL}/uploads/previews/${req.files.preview[0].filename}`;
+    }
+    if (req.files.code && req.files.code[0]) {
+      codeFileUrl = `${SERVER_BASE_URL}/uploads/code/${req.files.code[0].filename}`;
+    }
+  }
+
+  if (!previewImageUrl || !codeFileUrl) {
+    return res.status(400).json({ message: "Both preview image and code bundle are required (as files or URLs)." });
   }
 
   let parsedTags = [];
@@ -77,9 +89,6 @@ exports.createProduct = asyncHandler(async (req, res) => {
     }
   }
 
-  const previewImageUrl = `${SERVER_BASE_URL}/uploads/previews/${req.files.preview[0].filename}`;
-  const codeFileUrl = `${SERVER_BASE_URL}/uploads/code/${req.files.code[0].filename}`;
-
   const product = new Product({
     name,
     category,
@@ -90,6 +99,7 @@ exports.createProduct = asyncHandler(async (req, res) => {
     framework: framework || 'react',
     previewImageUrl,
     codeFileUrl,
+    code: code || '',
     createdBy: req.user.id
   });
 
@@ -99,7 +109,7 @@ exports.createProduct = asyncHandler(async (req, res) => {
 
 exports.updateProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { name, category, price, tags, description, livePreviewUrl, framework } = req.body;
+  const { name, category, price, tags, description, livePreviewUrl, framework, previewImageUrl: bodyPreview, codeFileUrl: bodyCode, code } = req.body;
 
   const product = await Product.findOne({ _id: id, isActive: true });
   if (!product) {
@@ -112,6 +122,7 @@ exports.updateProduct = asyncHandler(async (req, res) => {
   if (description) product.description = description;
   if (livePreviewUrl) product.livePreviewUrl = livePreviewUrl;
   if (framework) product.framework = framework;
+  if (code !== undefined) product.code = code;
 
   if (tags) {
     try {
@@ -121,11 +132,14 @@ exports.updateProduct = asyncHandler(async (req, res) => {
     }
   }
 
+  if (bodyPreview) product.previewImageUrl = bodyPreview;
+  if (bodyCode) product.codeFileUrl = bodyCode;
+
   if (req.files) {
-    if (req.files.preview) {
+    if (req.files.preview && req.files.preview[0]) {
       product.previewImageUrl = `${SERVER_BASE_URL}/uploads/previews/${req.files.preview[0].filename}`;
     }
-    if (req.files.code) {
+    if (req.files.code && req.files.code[0]) {
       product.codeFileUrl = `${SERVER_BASE_URL}/uploads/code/${req.files.code[0].filename}`;
     }
   }

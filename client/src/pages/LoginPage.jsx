@@ -30,7 +30,7 @@ export default function LoginPage() {
       
       // Navigate to admin if admin, otherwise to home
       if (user.role === 'admin') {
-        navigate('/admin');
+        navigate('/admin/dashboard');
       } else {
         navigate('/');
       }

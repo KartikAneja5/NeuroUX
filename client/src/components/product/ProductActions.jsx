@@ -1,18 +1,33 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiShoppingCart, FiCreditCard, FiCheck, FiDownload, FiLock } from 'react-icons/fi';
+import { CartContext } from '../../context/CartContext';
 
-export default function ProductActions({ productId, price, license = 'Personal License', onPurchaseSuccess }) {
+export default function ProductActions({ product, price, license = 'Personal License', onPurchaseSuccess }) {
   const [purchased, setPurchased] = useState(false);
+  const { addToCart } = useContext(CartContext) || {};
+  const navigate = useNavigate();
+
+  const productId = product?.id;
 
   useEffect(() => {
-    setPurchased(localStorage.getItem(`purchased_${productId}`) === 'true');
+    if (productId) {
+      setPurchased(localStorage.getItem(`purchased_${productId}`) === 'true');
+    }
   }, [productId]);
 
   const handleBuyNow = () => {
-    localStorage.setItem(`purchased_${productId}`, 'true');
-    setPurchased(true);
-    if (onPurchaseSuccess) onPurchaseSuccess();
-    alert(`🎉 Purchase Successful!\n\nYou have purchased the license for this component. The "Source Code" tab is now unlocked!`);
+    if (addToCart && product) {
+      addToCart(product);
+      navigate('/customer/checkout');
+    }
+  };
+
+  const handleAddToCart = () => {
+    if (addToCart && product) {
+      addToCart(product);
+      alert(`🛒 "${product.name}" added to cart!`);
+    }
   };
 
   const handleReset = () => {
@@ -22,7 +37,7 @@ export default function ProductActions({ productId, price, license = 'Personal L
   };
 
   return (
-    <div className="glass-strong p-6 rounded-2xl border border-white/10 select-none">
+    <div className="glass-strong p-6 rounded-2xl border border-white/10 select-none bg-[#0c0b1e]/60 backdrop-blur-md">
       <div className="flex justify-between items-end mb-6">
         <div>
           <p className="text-xs text-[#5a5275] font-medium mb-1 uppercase tracking-wider">{license}</p>
@@ -55,7 +70,10 @@ export default function ProductActions({ productId, price, license = 'Personal L
             >
               <FiCreditCard size={16} /> Buy Now
             </button>
-            <button className="w-full py-3.5 glass hover:bg-white/8 border border-white/10 text-[#c4b5fd] font-medium rounded-xl flex items-center justify-center gap-2 transition">
+            <button 
+              onClick={handleAddToCart}
+              className="w-full py-3.5 glass hover:bg-white/8 border border-white/10 text-[#c4b5fd] font-medium rounded-xl flex items-center justify-center gap-2 transition"
+            >
               <FiShoppingCart size={16} /> Add to Cart
             </button>
           </>

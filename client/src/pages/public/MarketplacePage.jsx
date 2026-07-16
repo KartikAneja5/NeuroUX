@@ -1,29 +1,63 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { FiSearch, FiChevronDown, FiZap, FiGrid, FiSliders, FiFileText, FiShield } from 'react-icons/fi';
-import { dummyProducts, dummyCategories } from '../../data/dummyData';
+import { dummyCategories } from '../../data/dummyData';
 import ComponentPreviewSwitcher from '../../components/gallery-previews/InteractiveComponents';
 import ProductActions from '../../components/product/ProductActions';
 import ProductTabs from '../../components/product/ProductTabs';
+import { getProducts } from '../../api/productApi';
 
 export default function MarketplacePage() {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const initialCategory = searchParams.get('category');
 
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(initialCategory || 'all');
-  const [selectedProduct, setSelectedProduct] = useState(dummyProducts[0]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [purchaseTrigger, setPurchaseTrigger] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Sync with search param if it changes
+  // Load products from API
   useEffect(() => {
-    if (initialCategory) {
-      setSelectedCategory(initialCategory);
-      const firstInCat = dummyProducts.find(p => p.categoryId === initialCategory);
-      if (firstInCat) setSelectedProduct(firstInCat);
-    }
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const response = await getProducts({ limit: 100 });
+        const dbProducts = response.data.products || [];
+        
+        // Map database products to include categoryId for matching dummyCategories and sidebar selection
+        const mappedProducts = dbProducts.map(p => ({
+          ...p,
+          id: p._id, // use _id as id
+          categoryId: p.category.toLowerCase().replace(/\s+/g, '-'),
+          // Attach fallback code from matching dummy names if not present in DB
+          code: p.code || '',
+          rating: p.rating || 5.0,
+          reviews: p.reviews || 1,
+          author: p.author || { name: 'NeuroUX Team', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=NeuroUX' }
+        }));
+        
+        setProducts(mappedProducts);
+
+        // Auto select first product
+        if (mappedProducts.length > 0) {
+          if (initialCategory) {
+            const firstInCat = mappedProducts.find(p => p.categoryId === initialCategory);
+            setSelectedProduct(firstInCat || mappedProducts[0]);
+          } else {
+            setSelectedProduct(mappedProducts[0]);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load products from API:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
   }, [initialCategory]);
 
   const handlePurchaseSuccess = () => {
@@ -36,11 +70,11 @@ export default function MarketplacePage() {
     dummyCategories.forEach(cat => {
       groups[cat.id] = {
         name: cat.name,
-        items: dummyProducts.filter(p => p.categoryId === cat.id)
+        items: products.filter(p => p.categoryId === cat.id)
       };
     });
     return groups;
-  }, []);
+  }, [products]);
 
   // Filter components in sidebar if search query is present
   const filteredGroups = useMemo(() => {
@@ -63,6 +97,23 @@ export default function MarketplacePage() {
     });
     return filtered;
   }, [searchQuery, groupedComponents]);
+
+  if (loading && !selectedProduct) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#080712]">
+        <div className="w-12 h-12 border-4 border-violet-950 border-t-violet-500 rounded-full animate-spin shadow-glow-sm"></div>
+      </div>
+    );
+  }
+
+  if (!selectedProduct) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#080712] text-[#8b7fb5]">
+        <span className="text-lg font-bold text-white mb-2">No components available</span>
+        <p className="text-sm">Please seed the database or check back later.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#080712] text-white flex flex-col pt-[60px] relative">
@@ -203,7 +254,7 @@ export default function MarketplacePage() {
               </div>
               <div className="w-full md:w-auto shrink-0 md:self-end">
                 <ProductActions 
-                  productId={selectedProduct.id}
+                  product={selectedProduct}
                   price={selectedProduct.price}
                   onPurchaseSuccess={handlePurchaseSuccess}
                 />
@@ -225,7 +276,7 @@ export default function MarketplacePage() {
                 
                 {/* Live switch preview */}
                 <div className="relative z-10 w-full flex justify-center">
-                  <ComponentPreviewSwitcher productId={selectedProduct.id} />
+                  <ComponentPreviewSwitcher productId={selectedProduct.id} productName={selectedProduct.name} />
                 </div>
                 
                 {/* Status/Overlay tags */}

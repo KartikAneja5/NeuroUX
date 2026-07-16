@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { FiChevronRight, FiStar, FiPackage, FiLayers, FiExternalLink } from 'react-icons/fi';
-import { dummyProducts } from '../../data/dummyData';
 import ProductGallery from '../../components/product/ProductGallery';
 import ProductActions from '../../components/product/ProductActions';
 import ProductTabs from '../../components/product/ProductTabs';
 import ProductCard from '../../components/product/ProductCard';
 import { motion } from 'framer-motion';
+import { getProductById } from '../../api/productApi';
+import { getRecommendations } from '../../api/recommendationApi';
+import useTrackInteraction from '../../hooks/useTrackInteraction';
 
 export default function ProductDetailsPage() {
   const { id } = useParams();
@@ -15,23 +17,52 @@ export default function ProductDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [purchaseTrigger, setPurchaseTrigger] = useState(false);
 
+  // Track product view interaction
+  useTrackInteraction(product?._id || product?.id, 'view');
+
   const handlePurchaseSuccess = () => {
     setPurchaseTrigger(prev => !prev);
   };
 
   useEffect(() => {
-    setLoading(true);
-    window.scrollTo(0, 0);
-    const timer = setTimeout(() => {
-      const found = dummyProducts.find(p => p.id === id);
-      const actualProduct = found || dummyProducts[0];
-      setProduct(actualProduct);
-      setRelatedProducts(
-        dummyProducts.filter(p => p.id !== actualProduct.id).slice(0, 4)
-      );
-      setLoading(false);
-    }, 400);
-    return () => clearTimeout(timer);
+    const fetchProductDetails = async () => {
+      setLoading(true);
+      window.scrollTo(0, 0);
+      try {
+        const response = await getProductById(id);
+        const dbProduct = response.data;
+        
+        // Normalize product fields
+        const mappedProduct = {
+          ...dbProduct,
+          id: dbProduct._id,
+          categoryId: dbProduct.category.toLowerCase().replace(/\s+/g, '-'),
+          rating: dbProduct.rating || 5.0,
+          reviews: dbProduct.reviews || 1,
+          author: dbProduct.author || { name: 'NeuroUX Team', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=NeuroUX' }
+        };
+        setProduct(mappedProduct);
+
+        // Fetch AI recommendations
+        const recsResponse = await getRecommendations(id);
+        const mappedRecs = (recsResponse.data || []).map(p => ({
+          ...p,
+          id: p._id,
+          categoryId: p.category.toLowerCase().replace(/\s+/g, '-'),
+          rating: p.rating || 5.0,
+          reviews: p.reviews || 1,
+          author: p.author || { name: 'NeuroUX Team', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=NeuroUX' }
+        }));
+        setRelatedProducts(mappedRecs.slice(0, 4));
+      } catch (err) {
+        console.error("Failed to load product details or recommendations:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (id) {
+      fetchProductDetails();
+    }
   }, [id]);
 
   if (loading) {
@@ -137,7 +168,7 @@ export default function ProductDetailsPage() {
 
             {/* Pricing & CTA */}
             <ProductActions 
-              productId={product.id}
+              product={product}
               price={product.price} 
               onPurchaseSuccess={handlePurchaseSuccess} 
             />

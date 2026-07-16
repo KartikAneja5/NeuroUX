@@ -29,6 +29,7 @@ export default function Navbar() {
     { to: '/marketplace', label: 'Marketplace' },
     { to: '/about', label: 'About' },
     { to: '/services', label: 'Pricing' },
+    { to: '/contact', label: 'Contact' },
   ];
 
   return (

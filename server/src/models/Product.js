@@ -9,6 +9,7 @@ const productSchema = new mongoose.Schema({
   previewImageUrl: { type: String },
   livePreviewUrl: { type: String },
   codeFileUrl: { type: String },
+  code: { type: String },
   framework: { type: String, default: 'react' },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   isActive: { type: Boolean, default: true }

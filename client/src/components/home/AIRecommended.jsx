@@ -1,9 +1,46 @@
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { dummyProducts } from '../../data/dummyData';
 import ProductCard from '../product/ProductCard';
 import { FiZap } from 'react-icons/fi';
+import { getProducts } from '../../api/productApi';
+import { getRecommendations } from '../../api/recommendationApi';
 
 export default function AIRecommended() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAIRecommendations = async () => {
+      try {
+        const catalogResponse = await getProducts({ limit: 1 });
+        const catalog = catalogResponse.data.products || [];
+        if (catalog.length > 0) {
+          const anchorProduct = catalog[0];
+          const recsResponse = await getRecommendations(anchorProduct._id);
+          const recs = recsResponse.data || [];
+          
+          const mappedRecs = recs.map(p => ({
+            ...p,
+            id: p._id,
+            categoryId: p.category.toLowerCase().replace(/\s+/g, '-'),
+            rating: p.rating || 5.0,
+            reviews: p.reviews || 1,
+            author: p.author || { name: 'NeuroUX Team', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=NeuroUX' }
+          }));
+          
+          setProducts(mappedRecs.slice(0, 3));
+        }
+      } catch (err) {
+        console.error("Failed to load AI recommendations:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAIRecommendations();
+  }, []);
+
+  if (loading || products.length === 0) return null;
+
   return (
     <section className="py-24 relative overflow-hidden">
       {/* Dark purple gradient background */}
@@ -46,7 +83,7 @@ export default function AIRecommended() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {dummyProducts.slice(0, 3).map((product, i) => (
+          {products.map((product, i) => (
             <motion.div
               key={product.id}
               initial={{ opacity: 0, y: 30 }}

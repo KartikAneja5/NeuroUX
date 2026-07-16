@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiArrowRight, FiZap } from 'react-icons/fi';
+import { FiArrowRight } from 'react-icons/fi';
 import BlurText from '../ui/BlurText';
 
 export default function Hero() {
   const canvasRef = useRef(null);
+  const containerRef = useRef(null);
 
   // State corresponding to the 9 editable props in reactbits.dev screenshot
   const [color, setColor] = useState('#A855F7');
@@ -18,7 +19,33 @@ export default function Hero() {
   const [iterations, setIterations] = useState(1);
   const [intensity, setIntensity] = useState(1.3);
 
-  // Animation and canvas setup
+  // Hardware-accelerated CSS variable mouse tracker
+  const handleMouseMove = (e) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    containerRef.current.style.setProperty('--mouse-x', `${x}px`);
+    containerRef.current.style.setProperty('--mouse-y', `${y}px`);
+  };
+
+  const handleMouseLeave = () => {
+    if (!containerRef.current) return;
+    containerRef.current.style.setProperty('--mouse-x', `-1000px`);
+    containerRef.current.style.setProperty('--mouse-y', `-1000px`);
+  };
+
+  // Hex to RGB parser helper
+  const hexToRgb = (hex) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : { r: 168, g: 85, b: 247 };
+  };
+
+  // Animation and canvas setup for ColorBends
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -36,6 +63,7 @@ export default function Hero() {
     const render = () => {
       const width = canvas.width;
       const height = canvas.height;
+      const rgb = hexToRgb(color);
 
       // 1. Draw base dark background
       ctx.fillStyle = '#080712';
@@ -49,33 +77,23 @@ export default function Hero() {
 
       ctx.globalCompositeOperation = 'screen';
 
-      // Draw bands based on iterations
+      // Draw multi-color glowing bends waves based on iterations
       const loops = Math.min(4, Math.max(1, iterations));
       for (let b = 0; b < loops; b++) {
         const grad = ctx.createLinearGradient(0, 0, width, height);
-        // Alpha controls
-        const alpha = (0.15 + b * 0.1) * intensity;
+        // Base alpha set higher (0.45+) to make waves highly pigmented and bright
+        const alpha = (0.45 + b * 0.12) * intensity;
         
-        // Hex to RGBA conversion helper
-        const hexToRgb = (hex) => {
-          const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-          return result ? {
-            r: parseInt(result[1], 16),
-            g: parseInt(result[2], 16),
-            b: parseInt(result[3], 16)
-          } : { r: 168, g: 85, b: 247 };
-        };
-
-        const rgb = hexToRgb(color);
-        grad.addColorStop(0, 'rgba(8, 7, 18, 0)');
-        grad.addColorStop(0.3, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha * 0.85})`);
-        grad.addColorStop(0.6, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha * 0.3})`);
+        // Multi-color stops mapping: Cyan -> Primary Color (Violet) -> Saturated Fuchsia
+        grad.addColorStop(0, 'rgba(6, 182, 212, 0)');
+        grad.addColorStop(0.35, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`);
+        grad.addColorStop(0.65, `rgba(236, 72, 153, ${alpha * 0.95})`);
         grad.addColorStop(1, 'rgba(8, 7, 18, 0)');
 
         ctx.fillStyle = grad;
         ctx.beginPath();
 
-        // Top Wavy Path
+        // Top Wavy Path with double-octave sines for organic fluid bending
         ctx.moveTo(0, height);
         for (let x = 0; x <= width; x += 15) {
           const angle = (x / width) * Math.PI * 2 * frequency + t + b * (Math.PI / 3);
@@ -88,7 +106,7 @@ export default function Hero() {
           ctx.lineTo(x, y - (bandwidth * 400));
         }
 
-        // Bottom Wavy Path (to close loop)
+        // Bottom Wavy Path
         for (let x = width; x >= 0; x -= 15) {
           const angle = (x / width) * Math.PI * 2 * frequency + t + b * (Math.PI / 3);
           const secondaryAngle = (x / width) * Math.PI * 4 * frequency - t * 0.3;
@@ -116,7 +134,7 @@ export default function Hero() {
         ctx.fillRect(0, 0, width, height);
       }
 
-      // Update time offset using speed prop
+      // Increment t based on speed prop
       t += 0.01 * speed * 5;
 
       animFrameId = requestAnimationFrame(render);
@@ -131,21 +149,42 @@ export default function Hero() {
   }, [color, speed, frequency, noise, bandwidth, rotation, fadeTop, iterations, intensity]);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#080712] pt-20 px-4">
+    <section 
+      ref={containerRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#080712] pt-20 px-4 group"
+    >
       
-      {/* Dynamic ColorBends Canvas Background */}
+      {/* Dynamic ColorBends Canvas Background (soft blurred gaseous layers) */}
       <div className="absolute inset-0 z-0 select-none pointer-events-none">
-        <canvas ref={canvasRef} className="w-full h-full block" />
-        <div className="absolute inset-0 dot-grid-fine opacity-25" />
+        <canvas ref={canvasRef} className="w-full h-full block blur-[50px] scale-[1.08] opacity-85" />
+        
+        {/* Sharp Dot Grid Overlay */}
+        <div 
+          className="absolute inset-0 opacity-30 pointer-events-none"
+          style={{
+            backgroundImage: `radial-gradient(rgba(255, 255, 255, 0.3) 1.3px, transparent 1.3px)`,
+            backgroundSize: '26px 26px',
+          }}
+        />
+
+        {/* Hardware-Accelerated Mouse Spotlight highlighting the dot grid */}
+        <div 
+          className="absolute inset-0 pointer-events-none transition-opacity duration-300 opacity-0 group-hover:opacity-100"
+          style={{
+            background: `radial-gradient(350px circle at var(--mouse-x, -1000px) var(--mouse-y, -1000px), ${color}1e 0%, transparent 80%)`,
+          }}
+        />
         
         {/* Bottom fade out to next section */}
         <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#080712] to-transparent z-[5]" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center py-12 lg:py-24">
+      <div className="relative z-10 max-w-7xl mx-auto w-full grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center py-12 md:py-24">
         
         {/* LEFT COLUMN: Texts and Actions */}
-        <div className="lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left">
+        <div className="md:col-span-7 flex flex-col items-center md:items-start text-center md:text-left">
           {/* Badge */}
           <motion.div
             initial={{ opacity: 0, y: 15 }}
@@ -169,7 +208,7 @@ export default function Hero() {
             />
             <BlurText 
               text="creative developers" 
-              className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 pb-2 leading-tight" 
+              className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-violet-400 pb-2 leading-tight" 
               delay={80}
               animateBy="words"
             />
@@ -201,7 +240,7 @@ export default function Hero() {
         </div>
 
         {/* RIGHT COLUMN: Interactive Code Sandbox Editor */}
-        <div className="lg:col-span-5 flex justify-center items-center">
+        <div className="md:col-span-5 flex justify-center items-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -385,7 +424,7 @@ export default function Hero() {
             </div>
 
             {/* Bottom Tooltip */}
-            <div className="mt-5 text-center text-[9px] text-zinc-500 border-t border-white/5 pt-3 animate-pulse">
+            <div className="mt-5 text-center text-[9px] text-zinc-500 border-t border-white/5 pt-3">
               drag or click values to edit and watch the waves morph
             </div>
           </motion.div>

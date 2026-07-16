@@ -1,18 +1,43 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { dummyProducts } from '../../data/dummyData';
-import { FiStar, FiHeart, FiArrowRight } from 'react-icons/fi';
+import { FiStar, FiHeart } from 'react-icons/fi';
 
 export default function ProductCard({ product }) {
   const isProtectedPreview = true; // All previews are image-only (no live code)
+  const [inWishlist, setInWishlist] = useState(false);
+
+  useEffect(() => {
+    if (product?.id) {
+      const list = JSON.parse(localStorage.getItem('neuroux_wishlist') || '[]');
+      setInWishlist(list.includes(product.id));
+    }
+  }, [product?.id]);
+
+  const toggleWishlist = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!product?.id) return;
+    
+    const list = JSON.parse(localStorage.getItem('neuroux_wishlist') || '[]');
+    let newList;
+    if (list.includes(product.id)) {
+      newList = list.filter(id => id !== product.id);
+      setInWishlist(false);
+    } else {
+      newList = [...list, product.id];
+      setInWishlist(true);
+    }
+    localStorage.setItem('neuroux_wishlist', JSON.stringify(newList));
+  };
 
   return (
     <motion.div
       whileHover={{ y: -4 }}
-      className="group relative glass border-glow rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300"
+      className="group relative glass border-glow rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 bg-[#0c0b1e]/40 backdrop-blur-sm"
     >
       {/* Image Preview (protected - no live code exposed) */}
-      <Link to={`/marketplace/${product.id}`} className="block relative aspect-[4/3] overflow-hidden bg-dark-800">
+      <Link to={`/marketplace/${product.id}`} className="block relative aspect-[4/3] overflow-hidden bg-[#080712]">
         {isProtectedPreview && (
           <img
             src={product.previewImageUrl}
@@ -30,10 +55,12 @@ export default function ProductCard({ product }) {
 
         {/* Wishlist button */}
         <button 
-          className="absolute top-3 right-3 p-2 glass rounded-full text-[#8b7fb5] hover:text-pink-400 opacity-0 group-hover:opacity-100 transition-all duration-200 border border-white/10"
-          onClick={(e) => e.preventDefault()}
+          className={`absolute top-3 right-3 p-2 glass rounded-full transition-all duration-200 border border-white/10 z-10 ${
+            inWishlist ? 'text-pink-500 bg-pink-500/10 opacity-100' : 'text-[#8b7fb5] hover:text-pink-400 opacity-0 group-hover:opacity-100'
+          }`}
+          onClick={toggleWishlist}
         >
-          <FiHeart size={14} />
+          <FiHeart size={14} className={inWishlist ? 'fill-current' : ''} />
         </button>
 
         {/* Overlay on hover */}
@@ -62,7 +89,7 @@ export default function ProductCard({ product }) {
             <span className="text-white">{product.rating}</span>
             <span className="text-[#5a5275]">({product.reviews})</span>
           </div>
-          <span className="text-[10px] bg-dark-700 border border-white/8 text-[#8b7fb5] px-2 py-0.5 rounded font-mono uppercase">
+          <span className="text-[10px] bg-white/5 border border-white/8 text-[#8b7fb5] px-2 py-0.5 rounded font-mono uppercase">
             {product.framework}
           </span>
         </div>

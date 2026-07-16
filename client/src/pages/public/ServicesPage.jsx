@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FiCheck, FiInfo, FiZap, FiPlus, FiMinus } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
+import { FiCheck, FiZap, FiPlus, FiMinus } from 'react-icons/fi';
 
 const plans = [
   {
@@ -109,7 +109,7 @@ export default function ServicesPage() {
           {plans.map((p, idx) => (
             <div 
               key={idx}
-              className={`flex flex-col p-8 rounded-3xl border transition-all duration-300 relative ${p.color} hover:y-[-4px] hover:border-white/15`}
+              className={`flex flex-col p-8 rounded-3xl border transition-all duration-300 relative ${p.color} hover:-translate-y-1 hover:border-white/15`}
             >
               {p.popular && (
                 <span className="absolute top-0 right-8 -translate-y-1/2 bg-violet-600 text-white font-bold text-[9px] uppercase tracking-wider px-3 py-1 rounded-full shadow-glow-sm">
@@ -152,7 +152,7 @@ export default function ServicesPage() {
           ))}
         </div>
 
-        {/* Accordion FAQ Section */}
+        {/* FAQ Section */}
         <div className="max-w-3xl mx-auto border-t border-white/5 pt-20">
           <div className="text-center mb-12">
             <h2 className="text-2xl font-bold text-white mb-3">Frequently Asked Questions</h2>
@@ -177,20 +177,11 @@ export default function ServicesPage() {
                     </span>
                   </button>
                   
-                  <AnimatePresence initial={false}>
-                    {isOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.25 }}
-                      >
-                        <div className="p-5 pt-0 border-t border-white/5 text-xs text-zinc-400 leading-relaxed font-light">
-                          {faq.answer}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  {isOpen && (
+                    <div className="p-5 pt-0 border-t border-white/5 text-xs text-zinc-400 leading-relaxed font-light animate-[faqFade_0.2s_ease-out]">
+                      {faq.answer}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -215,6 +206,13 @@ export default function ServicesPage() {
         </div>
 
       </div>
+
+      <style>{`
+        @keyframes faqFade {
+          from { opacity: 0; transform: translateY(-4px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }
