@@ -8,7 +8,7 @@ exports.sendVerificationEmail = async (email, token) => {
   const verificationUrl = `${CLIENT_URL}/verify-email/${token}`;
   
   const mailOptions = {
-    from: '"NeuroUX Support" <noreply@neuroux.com>',
+    from: `"NeuroUX Support" <${process.env.EMAIL_USER || 'studyemailjee@gmail.com'}>`,
     to: email,
     subject: 'Verify Your Email - NeuroUX Marketplace',
     html: `
@@ -49,7 +49,7 @@ exports.sendResetPasswordEmail = async (email, token) => {
   const resetUrl = `${CLIENT_URL}/reset-password/${token}`;
   
   const mailOptions = {
-    from: '"NeuroUX Support" <noreply@neuroux.com>',
+    from: `"NeuroUX Support" <${process.env.EMAIL_USER || 'studyemailjee@gmail.com'}>`,
     to: email,
     subject: 'Reset Your Password - NeuroUX Marketplace',
     html: `

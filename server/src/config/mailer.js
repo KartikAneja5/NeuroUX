@@ -19,9 +19,11 @@ if (isPlaceholder) {
     }
   });
 } else {
+  const host = process.env.EMAIL_HOST || 'smtp.gmail.com';
+  const isGmail = host.includes('gmail');
+
   transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST || "smtp.mailtrap.io",
-    port: process.env.EMAIL_PORT || 2525,
+    ...(isGmail ? { service: 'gmail' } : { host, port: parseInt(process.env.EMAIL_PORT) || 587, secure: false }),
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS

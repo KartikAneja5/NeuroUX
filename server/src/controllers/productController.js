@@ -170,12 +170,14 @@ exports.getCategories = asyncHandler(async (req, res) => {
     { $sort: { count: -1 } }
   ]);
 
-  const categories = categoryStats.map(item => ({
-    id: item._id.toLowerCase().replace(/\s+/g, '-'),
-    name: item._id.charAt(0).toUpperCase() + item._id.slice(1),
-    categoryKey: item._id,
-    count: item.count
-  }));
+  const categories = categoryStats
+    .filter(item => item._id)
+    .map(item => ({
+      id: String(item._id).toLowerCase().replace(/\s+/g, '-'),
+      name: String(item._id).charAt(0).toUpperCase() + String(item._id).slice(1),
+      categoryKey: String(item._id),
+      count: item.count
+    }));
 
   res.json(categories);
 });
