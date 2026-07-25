@@ -79,13 +79,17 @@ exports.verifyRazorpayPayment = asyncHandler(async (req, res) => {
 
     // Log purchase interactions for AI Recommender engine
     for (const item of order.items) {
-      await Interaction.create({
-        userId,
-        productId: item.productId,
-        type: 'purchase',
-        weight: 5.0,
-        source: 'checkout'
-      });
+      try {
+        await Interaction.create({
+          userId,
+          productId: item.productId,
+          type: 'purchase',
+          weight: 5.0,
+          source: 'checkout'
+        });
+      } catch (interactionErr) {
+        console.error("Failed to log purchase interaction:", interactionErr.message);
+      }
     }
   }
 
