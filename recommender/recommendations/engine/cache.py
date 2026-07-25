@@ -1,10 +1,11 @@
 import time
 
 class SimpleTTLCache:
-    def __init__(self, default_ttl=60):
+    def __init__(self, default_ttl=300):
         """
         A simple in-memory cache with a Time-To-Live (TTL) expiration mechanism.
-        default_ttl: time in seconds before cache expires (default 60 seconds)
+        default_ttl: time in seconds before cache expires (default 300 seconds / 5 min)
+        Note: Cache is process-level. In production, replace with Redis.
         """
         self.cache = {}
         self.default_ttl = default_ttl
@@ -27,5 +28,10 @@ class SimpleTTLCache:
     def clear(self):
         self.cache.clear()
 
-# Export a single global cache instance
-recommendation_cache = SimpleTTLCache(default_ttl=60)
+    def keys(self):
+        """Return all non-expired cache keys."""
+        now = time.time()
+        return [k for k, (_, exp) in self.cache.items() if now < exp]
+
+# Export a single global cache instance with 5-minute TTL
+recommendation_cache = SimpleTTLCache(default_ttl=300)

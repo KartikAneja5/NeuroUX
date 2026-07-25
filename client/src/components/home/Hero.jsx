@@ -1,41 +1,64 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { FiArrowRight } from 'react-icons/fi';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { 
+  FiArrowRight, 
+  FiZap, 
+  FiCode, 
+  FiSliders, 
+  FiActivity, 
+  FiGrid
+} from 'react-icons/fi';
 import BlurText from '../ui/BlurText';
 
 export default function Hero() {
+  const navigate = useNavigate();
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
 
-  // State corresponding to the 9 editable props in reactbits.dev screenshot
+  // Parallax motion values
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const springConfig = { stiffness: 100, damping: 18 };
+  const shadowX = useSpring(mouseX, springConfig);
+  const shadowY = useSpring(mouseY, springConfig);
+
+  const cardRotateX = useTransform(shadowY, [-300, 300], [6, -6]);
+  const cardRotateY = useTransform(shadowX, [-300, 300], [-8, 8]);
+
+  const elem1X = useTransform(shadowX, [-300, 300], [-12, 12]);
+  const elem1Y = useTransform(shadowY, [-300, 300], [-12, 12]);
+
+  const elem2X = useTransform(shadowX, [-300, 300], [15, -15]);
+  const elem2Y = useTransform(shadowY, [-300, 300], [-15, 15]);
+
+  const elem3X = useTransform(shadowX, [-300, 300], [-18, 18]);
+  const elem3Y = useTransform(shadowY, [-300, 300], [12, -12]);
+
+  // ColorBends ALL interactive props
   const [color, setColor] = useState('#A855F7');
   const [speed, setSpeed] = useState(0.2);
   const [frequency, setFrequency] = useState(1.0);
-  const [noise, setNoise] = useState(0.15);
-  const [bandwidth, setBandwidth] = useState(0.14);
   const [rotation, setRotation] = useState(90);
-  const [fadeTop, setFadeTop] = useState(0.75);
-  const [iterations, setIterations] = useState(1);
-  const [intensity, setIntensity] = useState(1.3);
+  const [warp, setWarp] = useState(1.2);
+  const [waveCount, setWaveCount] = useState(3);
 
-  // Hardware-accelerated CSS variable mouse tracker
+  // Interactive Live Components State
+  const [cyberActive, setCyberActive] = useState(false);
+  const [glowSwitch, setGlowSwitch] = useState(true);
+  const [liveConversions, setLiveConversions] = useState(1420);
+
+  // Mouse move handler for 3D stage parallax
   const handleMouseMove = (e) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    containerRef.current.style.setProperty('--mouse-x', `${x}px`);
-    containerRef.current.style.setProperty('--mouse-y', `${y}px`);
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    mouseX.set(x);
+    mouseY.set(y);
   };
 
-  const handleMouseLeave = () => {
-    if (!containerRef.current) return;
-    containerRef.current.style.setProperty('--mouse-x', `-1000px`);
-    containerRef.current.style.setProperty('--mouse-y', `-1000px`);
-  };
-
-  // Hex to RGB parser helper
   const hexToRgb = (hex) => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? {
@@ -45,7 +68,7 @@ export default function Hero() {
     } : { r: 168, g: 85, b: 247 };
   };
 
-  // Animation and canvas setup for ColorBends
+  // Canvas animation loop
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -65,235 +88,252 @@ export default function Hero() {
       const height = canvas.height;
       const rgb = hexToRgb(color);
 
-      // 1. Draw base dark background
       ctx.fillStyle = '#080712';
       ctx.fillRect(0, 0, width, height);
 
-      // 2. Setup rotation and scale for rendering waves
       ctx.save();
       ctx.translate(width / 2, height / 2);
       ctx.rotate((rotation * Math.PI) / 180);
       ctx.translate(-width / 2, -height / 2);
-
       ctx.globalCompositeOperation = 'screen';
 
-      // Draw multi-color glowing bends waves based on iterations
-      const loops = Math.min(4, Math.max(1, iterations));
-      for (let b = 0; b < loops; b++) {
+      for (let wave = 0; wave < waveCount; wave++) {
         const grad = ctx.createLinearGradient(0, 0, width, height);
-        // Base alpha set higher (0.45+) to make waves highly pigmented and bright
-        const alpha = (0.45 + b * 0.12) * intensity;
-        
-        // Multi-color stops mapping: Cyan -> Primary Color (Violet) -> Saturated Fuchsia
         grad.addColorStop(0, 'rgba(6, 182, 212, 0)');
-        grad.addColorStop(0.35, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`);
-        grad.addColorStop(0.65, `rgba(236, 72, 153, ${alpha * 0.95})`);
+        grad.addColorStop(0.35, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${0.35 / (wave + 1)})`);
+        grad.addColorStop(0.65, `rgba(236, 72, 153, ${0.25 / (wave + 1)})`);
         grad.addColorStop(1, 'rgba(8, 7, 18, 0)');
 
         ctx.fillStyle = grad;
         ctx.beginPath();
-
-        // Top Wavy Path with double-octave sines for organic fluid bending
         ctx.moveTo(0, height);
+
         for (let x = 0; x <= width; x += 15) {
-          const angle = (x / width) * Math.PI * 2 * frequency + t + b * (Math.PI / 3);
-          const secondaryAngle = (x / width) * Math.PI * 4 * frequency - t * 0.3;
-          
-          const noiseOffset = Math.sin(angle * 3.5) * noise * 120;
-          const waveHeight = (Math.sin(angle) + Math.cos(secondaryAngle) * 0.3) * (height * 0.2);
-          
-          const y = height / 2 + waveHeight + noiseOffset;
-          ctx.lineTo(x, y - (bandwidth * 400));
+          const angle = (x / width) * Math.PI * 2 * frequency + t + (wave * 0.8);
+          const y = height * (0.4 + wave * 0.1) + Math.sin(angle) * (height * 0.12 * warp);
+          ctx.lineTo(x, y);
         }
 
-        // Bottom Wavy Path
-        for (let x = width; x >= 0; x -= 15) {
-          const angle = (x / width) * Math.PI * 2 * frequency + t + b * (Math.PI / 3);
-          const secondaryAngle = (x / width) * Math.PI * 4 * frequency - t * 0.3;
-          
-          const noiseOffset = Math.sin(angle * 3.5) * noise * 120;
-          const waveHeight = (Math.sin(angle) + Math.cos(secondaryAngle) * 0.3) * (height * 0.2);
-          
-          const y = height / 2 + waveHeight + noiseOffset;
-          ctx.lineTo(x, y + (bandwidth * 400));
-        }
-
+        ctx.lineTo(width, height);
         ctx.closePath();
         ctx.fill();
       }
 
       ctx.restore();
 
-      // 3. Draw top fade gradient overlay
-      if (fadeTop > 0) {
-        ctx.globalCompositeOperation = 'source-over';
-        const fadeGrad = ctx.createLinearGradient(0, 0, 0, height * fadeTop);
-        fadeGrad.addColorStop(0, '#080712');
-        fadeGrad.addColorStop(1, 'transparent');
-        ctx.fillStyle = fadeGrad;
-        ctx.fillRect(0, 0, width, height);
-      }
-
-      // Increment t based on speed prop
-      t += 0.01 * speed * 5;
-
+      t += 0.008 * speed * 5;
       animFrameId = requestAnimationFrame(render);
     };
 
     render();
-
     return () => {
       cancelAnimationFrame(animFrameId);
       window.removeEventListener('resize', resizeCanvas);
     };
-  }, [color, speed, frequency, noise, bandwidth, rotation, fadeTop, iterations, intensity]);
+  }, [color, speed, frequency, rotation, warp, waveCount]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLiveConversions(prev => prev + Math.floor(Math.random() * 3) + 1);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const heroCategories = [
+    { label: 'Basic UI', category: 'basic-ui-components' },
+    { label: 'Navigation', category: 'navigation-components' },
+    { label: 'Dashboards', category: 'dashboard-components' },
+    { label: 'AI Products', category: 'ai-product-components' },
+    { label: 'E-commerce', category: 'e-commerce-components' }
+  ];
 
   return (
     <section 
       ref={containerRef}
       onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#080712] pt-20 px-4 group"
+      className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-[#080712] pt-20 pb-16 px-4 sm:px-6 lg:px-8 select-none"
     >
-      
-      {/* Dynamic ColorBends Canvas Background (soft blurred gaseous layers) */}
+      {/* Canvas Background Shader */}
       <div className="absolute inset-0 z-0 select-none pointer-events-none">
-        <canvas ref={canvasRef} className="w-full h-full block blur-[50px] scale-[1.08] opacity-85" />
-        
-        {/* Sharp Dot Grid Overlay */}
+        <canvas ref={canvasRef} className="w-full h-full block opacity-85" />
         <div 
-          className="absolute inset-0 opacity-30 pointer-events-none"
+          className="absolute inset-0 opacity-15 pointer-events-none"
           style={{
-            backgroundImage: `radial-gradient(rgba(255, 255, 255, 0.3) 1.3px, transparent 1.3px)`,
-            backgroundSize: '26px 26px',
+            backgroundImage: `radial-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px)`,
+            backgroundSize: '24px 24px',
           }}
         />
-
-        {/* Hardware-Accelerated Mouse Spotlight highlighting the dot grid */}
-        <div 
-          className="absolute inset-0 pointer-events-none transition-opacity duration-300 opacity-0 group-hover:opacity-100"
-          style={{
-            background: `radial-gradient(350px circle at var(--mouse-x, -1000px) var(--mouse-y, -1000px), ${color}1e 0%, transparent 80%)`,
-          }}
-        />
-        
-        {/* Bottom fade out to next section */}
-        <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#080712] to-transparent z-[5]" />
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#080712] to-transparent z-[5]" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto w-full grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center py-12 md:py-24">
+      <div className="relative z-10 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
         
-        {/* LEFT COLUMN: Texts and Actions */}
-        <div className="md:col-span-7 flex flex-col items-center md:items-start text-center md:text-left">
-          {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-violet-500/20 bg-violet-600/10 backdrop-blur-md mb-6 shadow-glow-sm cursor-pointer hover:border-violet-500/40 transition-colors"
+        {/* LEFT COLUMN: Clean High-Contrast Copy & Clickable Buttons */}
+        <div className="lg:col-span-6 flex flex-col items-center lg:items-start text-center lg:text-left z-30">
+          
+          {/* Clickable Badge Pill */}
+          <Link 
+            to="/search"
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-slate-700 bg-slate-900/90 backdrop-blur-md mb-6 shadow-md cursor-pointer hover:border-violet-400 hover:bg-slate-800 transition-all z-30 pointer-events-auto"
           >
-            <span className="text-[9px] font-bold bg-violet-500 px-1.5 py-0.5 rounded text-white uppercase tracking-wider">New component</span>
-            <span className="text-[10px] font-medium text-[#c4b5fd] flex items-center gap-1">
-              Line Sidebar <FiArrowRight size={11} />
+            <span className="text-[10px] font-extrabold bg-violet-600 px-2 py-0.5 rounded text-white uppercase tracking-wider flex items-center gap-1">
+              <FiZap size={10} /> Live Components
             </span>
-          </motion.div>
+            <span className="text-xs font-semibold text-slate-200 flex items-center gap-1">
+              Explore 200+ Animated UI Blocks <FiArrowRight size={12} />
+            </span>
+          </Link>
 
           {/* Headline */}
           <div className="mb-6">
-            <BlurText 
-              text="React components for" 
-              className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white mb-2 leading-tight" 
-              delay={80}
-              animateBy="words"
-            />
-            <BlurText 
-              text="creative developers" 
-              className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-violet-400 pb-2 leading-tight" 
-              delay={80}
-              animateBy="words"
-            />
+            <h1 className="text-4xl sm:text-6xl lg:text-6xl font-extrabold tracking-tight text-white mb-2 leading-tight">
+              React <span className="text-violet-400">components</span> for
+            </h1>
+            <div className="text-4xl sm:text-6xl lg:text-6xl font-extrabold tracking-tight text-white">
+              <BlurText 
+                text="creative developers" 
+                delay={100} 
+                animateBy="words" 
+                direction="top" 
+                className="text-slate-100"
+              />
+            </div>
           </div>
 
-          {/* Subtitle */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-            className="text-[#8b7fb5] text-base md:text-lg max-w-lg mb-10 leading-relaxed font-light"
-          >
-            Highly customizable animated components & backgrounds that drop into your project and instantly make it stand out.
-          </motion.p>
+          <p className="text-slate-300 text-base md:text-lg max-w-lg mb-8 leading-relaxed font-light">
+            Production-ready, highly customizable animated components & background shaders that drop into your project and make it instantly look state-of-the-art.
+          </p>
 
-          {/* Browse Button */}
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1 }}
-          >
-            <Link 
-              to="/marketplace"
-              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-violet-600 hover:bg-violet-500 text-white font-semibold rounded-xl transition shadow-glow hover:shadow-glow-lg border border-violet-400"
-            >
-              Browse Components <FiArrowRight size={16} />
-            </Link>
-          </motion.div>
+          {/* CTAs */}
+          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 z-30 pointer-events-auto mb-8">
+            <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
+              <Link 
+                to="/search"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-violet-600 hover:bg-violet-500 text-white font-bold rounded-2xl transition shadow-md border border-violet-400/30 text-sm cursor-pointer z-30 pointer-events-auto"
+              >
+                Browse Marketplace <FiArrowRight size={16} />
+              </Link>
+            </motion.div>
+
+            <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
+              <Link 
+                to="/search"
+                className="inline-flex items-center justify-center gap-2 px-6 py-4 bg-slate-900/90 hover:bg-slate-800 text-slate-200 hover:text-white font-semibold rounded-2xl transition border border-slate-700 text-sm backdrop-blur-md cursor-pointer z-30 pointer-events-auto"
+              >
+                Live Interactive Demo
+              </Link>
+            </motion.div>
+          </div>
+
+          {/* Clickable Hero Categories Row */}
+          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 z-30 pointer-events-auto">
+            <span className="text-[11px] font-mono text-slate-400 mr-1 flex items-center gap-1">
+              <FiGrid size={11} /> Quick Category Filter:
+            </span>
+            {heroCategories.map(cat => (
+              <button
+                key={cat.label}
+                onClick={() => navigate(`/search?category=${cat.category}`)}
+                className="px-3 py-1 bg-slate-900/90 hover:bg-violet-600/30 hover:border-violet-500 border border-slate-800 rounded-lg text-xs font-medium text-slate-200 transition cursor-pointer z-30 pointer-events-auto"
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
         </div>
 
-        {/* RIGHT COLUMN: Interactive Code Sandbox Editor */}
-        <div className="md:col-span-5 flex justify-center items-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
-            className="w-full max-w-md bg-[#0c0b1e]/90 border border-white/10 rounded-2xl p-5 sm:p-6 shadow-2xl relative font-mono text-left select-none backdrop-blur-md"
+        {/* RIGHT COLUMN: 3D Interactive Stage with ALL ColorBends Controls */}
+        <div className="lg:col-span-6 flex justify-center items-center relative min-h-[440px] z-20">
+          
+          {/* Floating Widget 1: Interactive Cyberpunk Button */}
+          <motion.div 
+            style={{ x: elem1X, y: elem1Y }}
+            className="absolute -top-6 right-2 sm:right-6 z-30 pointer-events-auto"
           >
-            {/* Window header decoration */}
-            <div className="flex justify-between items-center pb-4 border-b border-white/5 mb-4">
-              <div className="flex gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
-                <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
-                <span className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
+            <motion.button 
+              onClick={() => setCyberActive(!cyberActive)}
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.92 }}
+              className={`px-4 py-2 bg-slate-950 border text-xs font-mono font-bold uppercase tracking-wider transition-all duration-200 shadow-md flex items-center gap-2 cursor-pointer rounded-xl ${
+                cyberActive 
+                  ? 'border-fuchsia-400 text-fuchsia-400' 
+                  : 'border-cyan-400 text-cyan-400'
+              }`}
+            >
+              <span className={`w-2 h-2 rounded-full ${cyberActive ? 'bg-fuchsia-400 animate-ping' : 'bg-cyan-400'}`} />
+              CYBER_BTN: {cyberActive ? 'ACTIVE' : 'CLICK ME'}
+            </motion.button>
+          </motion.div>
+
+          {/* Floating Widget 2: Live Conversions Counter */}
+          <motion.div 
+            style={{ x: elem2X, y: elem2Y }}
+            className="absolute top-10 -left-4 sm:left-0 z-30 pointer-events-none hidden sm:block"
+          >
+            <div className="bg-slate-900/90 border border-slate-800 px-4 py-2.5 rounded-2xl backdrop-blur-xl shadow-xl flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center text-violet-400">
+                <FiActivity size={16} />
               </div>
-              <span className="text-[10px] text-zinc-500 font-semibold uppercase tracking-wider">ColorBends.jsx</span>
+              <div className="text-left font-mono">
+                <div className="text-[10px] text-slate-400 font-semibold uppercase">Live Component Uses</div>
+                <div className="text-sm font-extrabold text-white">{liveConversions.toLocaleString()}+</div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Main 3D Card: Code Sandbox Editor for ColorBends with ALL Controls */}
+          <motion.div
+            style={{ rotateX: cardRotateX, rotateY: cardRotateY }}
+            className="w-full max-w-lg bg-[#0e0d22] border border-slate-800 rounded-3xl p-6 shadow-2xl relative font-mono text-left select-none backdrop-blur-2xl z-20"
+          >
+            {/* Window Top Controls */}
+            <div className="flex justify-between items-center pb-3.5 border-b border-slate-800 mb-4">
+              <div className="flex gap-2">
+                <span className="w-3 h-3 rounded-full bg-rose-500/80" />
+                <span className="w-3 h-3 rounded-full bg-amber-500/80" />
+                <span className="w-3 h-3 rounded-full bg-emerald-500/80" />
+              </div>
+              <span className="text-xs text-slate-400 font-semibold tracking-wider flex items-center gap-1.5">
+                <FiCode size={13} className="text-violet-400" /> ColorBends.jsx
+              </span>
             </div>
 
-            {/* Code Body Content */}
-            <div className="text-[10.5px] leading-relaxed text-zinc-400 space-y-0.5">
+            {/* Code Editor Viewport */}
+            <div className="text-xs leading-relaxed text-slate-400 space-y-2">
               <div>
                 <span className="text-pink-400">import</span> {'{ ColorBends }'} <span className="text-pink-400">from</span> <span className="text-emerald-400">'@components/ColorBends'</span>;
               </div>
-              <br />
-              <div>
-                <span className="text-violet-400">function</span> <span className="text-blue-400">App</span>() {'{'}
+              <div className="pt-0.5">
+                <span className="text-violet-400">function</span> <span className="text-blue-400">HeroStage</span>() {'{'}
               </div>
-              <div className="pl-4">
+              <div className="pl-3">
                 <span className="text-pink-400">return</span> (
               </div>
-              <div className="pl-8 text-zinc-300">
-                &lt;<span className="text-blue-400">ColorBends</span>
+              <div className="pl-6 text-white">
+                &lt;<span className="text-violet-400">ColorBends</span>
               </div>
               
-              {/* Clickable/Editable Prop Values */}
-              <div className="pl-12 space-y-0.5 text-zinc-300">
-                {/* 1. Color Picker */}
-                <div className="flex items-center gap-1.5 h-6">
-                  <span className="text-purple-400">color</span>=
-                  <span className="text-zinc-500">"</span>
-                  <div className="relative flex items-center gap-1 bg-white/5 border border-white/8 hover:border-white/20 rounded px-1.5 py-0.5 cursor-pointer">
+              {/* ALL ColorBends Sandbox Controls */}
+              <div className="pl-10 space-y-2 text-slate-300">
+                
+                {/* 1. Color Control */}
+                <div className="flex items-center gap-2 h-6">
+                  <span className="text-purple-300">color</span>=
+                  <div className="relative flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-lg px-2 py-0.5 cursor-pointer hover:border-violet-500 transition">
                     <input 
                       type="color" 
                       value={color} 
                       onChange={(e) => setColor(e.target.value)} 
-                      className="w-3.5 h-3.5 bg-transparent border-none cursor-pointer outline-none p-0 rounded-full"
+                      className="w-4 h-4 bg-transparent border-none cursor-pointer outline-none p-0 rounded-full"
                     />
-                    <span className="text-emerald-400 font-bold text-[9px] uppercase">{color}</span>
+                    <span className="text-emerald-400 font-bold text-xs uppercase">{color}</span>
                   </div>
-                  <span className="text-zinc-500">"</span>
                 </div>
 
-                {/* 2. Speed Input */}
-                <div className="flex items-center gap-1.5 h-6">
-                  <span className="text-purple-400">speed</span>={'{'}
+                {/* 2. Speed Control */}
+                <div className="flex items-center gap-2 h-6">
+                  <span className="text-purple-300">speed</span>={'{'}
                   <input 
                     type="number" 
                     step="0.05" 
@@ -301,14 +341,14 @@ export default function Hero() {
                     max="2.0"
                     value={speed} 
                     onChange={(e) => setSpeed(Math.max(0.01, parseFloat(e.target.value) || 0.01))} 
-                    className="w-12 bg-zinc-900 border border-white/10 text-cyan-300 rounded text-center py-0.5 outline-none font-mono text-[10px]" 
+                    className="w-14 bg-slate-950 border border-slate-700 text-cyan-300 rounded text-center py-0.5 outline-none font-mono text-xs focus:border-cyan-400" 
                   />
                   {'}'}
                 </div>
 
-                {/* 3. Frequency Input */}
-                <div className="flex items-center gap-1.5 h-6">
-                  <span className="text-purple-400">frequency</span>={'{'}
+                {/* 3. Frequency Control */}
+                <div className="flex items-center gap-2 h-6">
+                  <span className="text-purple-300">frequency</span>={'{'}
                   <input 
                     type="number" 
                     step="0.1" 
@@ -316,118 +356,106 @@ export default function Hero() {
                     max="5.0"
                     value={frequency} 
                     onChange={(e) => setFrequency(Math.max(0.1, parseFloat(e.target.value) || 0.1))} 
-                    className="w-12 bg-zinc-900 border border-white/10 text-cyan-300 rounded text-center py-0.5 outline-none font-mono text-[10px]" 
+                    className="w-14 bg-slate-950 border border-slate-700 text-cyan-300 rounded text-center py-0.5 outline-none font-mono text-xs focus:border-cyan-400" 
                   />
                   {'}'}
                 </div>
 
-                {/* 4. Noise Input */}
-                <div className="flex items-center gap-1.5 h-6">
-                  <span className="text-purple-400">noise</span>={'{'}
-                  <input 
-                    type="number" 
-                    step="0.05" 
-                    min="0.0" 
-                    max="1.0"
-                    value={noise} 
-                    onChange={(e) => setNoise(Math.max(0, parseFloat(e.target.value) || 0))} 
-                    className="w-12 bg-zinc-900 border border-white/10 text-cyan-300 rounded text-center py-0.5 outline-none font-mono text-[10px]" 
-                  />
-                  {'}'}
-                </div>
-
-                {/* 5. Bandwidth Input */}
-                <div className="flex items-center gap-1.5 h-6">
-                  <span className="text-purple-400">bandwidth</span>={'{'}
-                  <input 
-                    type="number" 
-                    step="0.02" 
-                    min="0.01" 
-                    max="0.5"
-                    value={bandwidth} 
-                    onChange={(e) => setBandwidth(Math.max(0.01, parseFloat(e.target.value) || 0.01))} 
-                    className="w-12 bg-zinc-900 border border-white/10 text-cyan-300 rounded text-center py-0.5 outline-none font-mono text-[10px]" 
-                  />
-                  {'}'}
-                </div>
-
-                {/* 6. Rotation Input */}
-                <div className="flex items-center gap-1.5 h-6">
-                  <span className="text-purple-400">rotation</span>={'{'}
+                {/* 4. Rotation Control */}
+                <div className="flex items-center gap-2 h-6">
+                  <span className="text-purple-300">rotation</span>={'{'}
                   <input 
                     type="number" 
                     step="5" 
                     min="0" 
                     max="360"
                     value={rotation} 
-                    onChange={(e) => setRotation(Math.max(0, parseInt(e.target.value) || 0))} 
-                    className="w-12 bg-zinc-900 border border-white/10 text-cyan-300 rounded text-center py-0.5 outline-none font-mono text-[10px]" 
+                    onChange={(e) => setRotation(parseInt(e.target.value) || 0)} 
+                    className="w-14 bg-slate-950 border border-slate-700 text-amber-300 rounded text-center py-0.5 outline-none font-mono text-xs focus:border-amber-400" 
                   />
                   {'}'}
                 </div>
 
-                {/* 7. FadeTop Input */}
-                <div className="flex items-center gap-1.5 h-6">
-                  <span className="text-purple-400">fadeTop</span>={'{'}
-                  <input 
-                    type="number" 
-                    step="0.05" 
-                    min="0.0" 
-                    max="1.0"
-                    value={fadeTop} 
-                    onChange={(e) => setFadeTop(Math.max(0, parseFloat(e.target.value) || 0))} 
-                    className="w-12 bg-zinc-900 border border-white/10 text-cyan-300 rounded text-center py-0.5 outline-none font-mono text-[10px]" 
-                  />
-                  {'}'}
-                </div>
-
-                {/* 8. Iterations Input */}
-                <div className="flex items-center gap-1.5 h-6">
-                  <span className="text-purple-400">iterations</span>={'{'}
-                  <input 
-                    type="number" 
-                    step="1" 
-                    min="1" 
-                    max="4"
-                    value={iterations} 
-                    onChange={(e) => setIterations(Math.max(1, parseInt(e.target.value) || 1))} 
-                    className="w-12 bg-zinc-900 border border-white/10 text-cyan-300 rounded text-center py-0.5 outline-none font-mono text-[10px]" 
-                  />
-                  {'}'}
-                </div>
-
-                {/* 9. Intensity Input */}
-                <div className="flex items-center gap-1.5 h-6">
-                  <span className="text-purple-400">intensity</span>={'{'}
+                {/* 5. Warp Control */}
+                <div className="flex items-center gap-2 h-6">
+                  <span className="text-purple-300">warp</span>={'{'}
                   <input 
                     type="number" 
                     step="0.1" 
                     min="0.1" 
-                    max="5.0"
-                    value={intensity} 
-                    onChange={(e) => setIntensity(Math.max(0.1, parseFloat(e.target.value) || 0.1))} 
-                    className="w-12 bg-zinc-900 border border-white/10 text-cyan-300 rounded text-center py-0.5 outline-none font-mono text-[10px]" 
+                    max="3.0"
+                    value={warp} 
+                    onChange={(e) => setWarp(Math.max(0.1, parseFloat(e.target.value) || 0.1))} 
+                    className="w-14 bg-slate-950 border border-slate-700 text-rose-300 rounded text-center py-0.5 outline-none font-mono text-xs focus:border-rose-400" 
+                  />
+                  {'}'}
+                </div>
+
+                {/* 6. Wave Count Control */}
+                <div className="flex items-center gap-2 h-6">
+                  <span className="text-purple-300">waveCount</span>={'{'}
+                  <input 
+                    type="number" 
+                    step="1" 
+                    min="1" 
+                    max="8"
+                    value={waveCount} 
+                    onChange={(e) => setWaveCount(Math.max(1, parseInt(e.target.value) || 1))} 
+                    className="w-14 bg-slate-950 border border-slate-700 text-violet-300 rounded text-center py-0.5 outline-none font-mono text-xs focus:border-violet-400" 
                   />
                   {'}'}
                 </div>
               </div>
 
-              <div className="pl-8 text-zinc-300">
-                /&gt;
-              </div>
-              <div className="pl-4">
-                );
-              </div>
-              <div>
-                {'}'}
-              </div>
+              <div className="pl-6 text-white">&lt;/&gt;</div>
+              <div className="pl-3">);</div>
+              <div>{'}'}</div>
             </div>
 
-            {/* Bottom Tooltip */}
-            <div className="mt-5 text-center text-[9px] text-zinc-500 border-t border-white/5 pt-3">
-              drag or click values to edit and watch the waves morph
+            {/* Bottom Color Palette Presets */}
+            <div className="mt-4 text-center border-t border-slate-800 pt-3 flex items-center justify-between">
+              <span className="text-[10px] text-slate-400 font-mono">Color Presets:</span>
+              <div className="flex gap-2">
+                {[
+                  { name: 'Neon Purple', hex: '#A855F7' },
+                  { name: 'Cyan Glow', hex: '#06B6D4' },
+                  { name: 'Pink Cyber', hex: '#EC4899' },
+                  { name: 'Sunset Gold', hex: '#F59E0B' },
+                  { name: 'Emerald Wave', hex: '#10B981' },
+                  { name: 'Ice Blue', hex: '#3B82F6' }
+                ].map(preset => (
+                  <button
+                    key={preset.hex}
+                    onClick={() => setColor(preset.hex)}
+                    title={preset.name}
+                    className="w-4 h-4 rounded-full border border-slate-600 cursor-pointer hover:scale-125 transition"
+                    style={{ backgroundColor: preset.hex }}
+                  />
+                ))}
+              </div>
             </div>
           </motion.div>
+
+          {/* Floating Widget 3: Glow Toggle Switch */}
+          <motion.div 
+            style={{ x: elem3X, y: elem3Y }}
+            className="absolute -bottom-6 left-4 sm:left-8 z-30 pointer-events-auto"
+          >
+            <div className="bg-slate-900/90 border border-slate-800 px-4 py-2.5 rounded-2xl backdrop-blur-xl shadow-xl flex items-center gap-3">
+              <span className="text-xs font-bold text-white flex items-center gap-1">
+                <FiSliders className="text-violet-400" size={13} /> Dark Glow Mode
+              </span>
+              <div 
+                onClick={() => setGlowSwitch(!glowSwitch)}
+                className={`w-11 h-6 rounded-full p-1 transition-all duration-300 border cursor-pointer ${
+                  glowSwitch ? 'bg-violet-600 border-violet-500' : 'bg-slate-800 border-slate-700'
+                }`}
+              >
+                <div className={`w-4 h-4 rounded-full bg-white transition-transform duration-300 ${glowSwitch ? 'translate-x-5' : 'translate-x-0'}`} />
+              </div>
+            </div>
+          </motion.div>
+
         </div>
 
       </div>

@@ -11,8 +11,12 @@ const productSchema = new mongoose.Schema({
   codeFileUrl: { type: String },
   code: { type: String },
   framework: { type: String, default: 'react' },
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   isActive: { type: Boolean, default: true }
 }, { timestamps: true });
+
+// Performance indexes for fast category filtering, tag search, and regex queries
+productSchema.index({ category: 1 });
+productSchema.index({ tags: 1 });
+productSchema.index({ name: 'text', description: 'text', tags: 'text' });
 
 module.exports = mongoose.model('Product', productSchema);

@@ -59,7 +59,7 @@ export default function ProductGallery({ productId, mainImage, title }) {
             
             {/* Protect right click/inspect inside preview */}
             <div 
-              className="absolute inset-0 bg-transparent" 
+              className="absolute inset-0 bg-transparent pointer-events-none" 
               onContextMenu={(e) => {
                 e.preventDefault();
                 e.stopPropagation();

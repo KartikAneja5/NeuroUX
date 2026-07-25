@@ -36,6 +36,8 @@ import AdminSettingsPage from '../pages/admin/AdminSettingsPage';
 import ProtectedRoute from '../components/common/ProtectedRoute';
 import AdminRoute from '../components/common/AdminRoute';
 
+import SearchResultsPage from '../pages/SearchResultsPage';
+
 export default function AppRoutes() {
   return (
     <Routes>
@@ -45,6 +47,7 @@ export default function AppRoutes() {
       <Route path="/services" element={<ServicesPage />} />
       <Route path="/marketplace" element={<MarketplacePage />} />
       <Route path="/marketplace/:id" element={<ProductDetailsPage />} />
+      <Route path="/search" element={<SearchResultsPage />} />
       <Route path="/contact" element={<ContactPage />} />
 
       {/* Auth Routes */}

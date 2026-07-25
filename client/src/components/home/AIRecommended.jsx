@@ -1,66 +1,61 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import ProductCard from '../product/ProductCard';
-import { FiZap } from 'react-icons/fi';
-import { getProducts } from '../../api/productApi';
-import { getRecommendations } from '../../api/recommendationApi';
+import { FiZap, FiStar } from 'react-icons/fi';
+import axiosInstance from '../../api/axiosInstance';
 
 export default function AIRecommended() {
   const [products, setProducts] = useState([]);
+  const [layoutInfo, setLayoutInfo] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchAIRecommendations = async () => {
+    const fetchAdaptiveLayout = async () => {
       try {
-        const catalogResponse = await getProducts({ limit: 1 });
-        const catalog = catalogResponse.data.products || [];
-        if (catalog.length > 0) {
-          const anchorProduct = catalog[0];
-          const recsResponse = await getRecommendations(anchorProduct._id);
-          const recs = recsResponse.data || [];
-          
-          const mappedRecs = recs.map(p => ({
-            ...p,
-            id: p._id,
-            categoryId: p.category.toLowerCase().replace(/\s+/g, '-'),
-            rating: p.rating || 5.0,
-            reviews: p.reviews || 1,
-            author: p.author || { name: 'NeuroUX Team', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=NeuroUX' }
-          }));
-          
-          setProducts(mappedRecs.slice(0, 3));
-        }
+        const sessionToken = localStorage.getItem('neuroux_session_token') || '';
+        const response = await axiosInstance.get('/products/homepage-layout', {
+          params: { session_token: sessionToken }
+        });
+
+        const data = response.data || {};
+        setLayoutInfo(data);
+
+        const featured = data.featuredProducts || [];
+        const mappedProducts = featured.map(p => ({
+          ...p,
+          id: p._id,
+          categoryId: (p.category || 'general').toLowerCase().replace(/\s+/g, '-'),
+          rating: 5.0,
+          reviews: 1,
+          author: { name: 'NeuroUX Team', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=NeuroUX' }
+        }));
+
+        setProducts(mappedProducts);
       } catch (err) {
-        console.error("Failed to load AI recommendations:", err);
+        console.error("Failed to load adaptive homepage layout:", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchAIRecommendations();
+    fetchAdaptiveLayout();
   }, []);
 
   if (loading || products.length === 0) return null;
 
   return (
-    <section className="py-24 relative overflow-hidden">
-      {/* Dark purple gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#080712] via-[#0d0b1a] to-[#080712]" />
-      <div className="absolute inset-0 dot-grid opacity-20" />
-      
-      {/* Big glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-violet-700/12 blur-[120px] pointer-events-none" />
+    <section className="py-24 bg-[#080712] relative overflow-hidden">
+      <div className="absolute inset-0 dot-grid opacity-15 pointer-events-none" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="text-center mb-16">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="inline-flex items-center gap-2 pill pill-purple mb-5"
+            className="inline-flex items-center gap-2 pill pill-purple mb-5 shadow-glow-sm"
           >
-            <FiZap size={12} />
-            AI-Powered Picks
+            {layoutInfo?.isColdStart ? <FiZap size={13} /> : <FiStar size={13} className="text-amber-400 fill-amber-400" />}
+            <span>{layoutInfo?.personalizedBadge || "★ Picked for Your Design Profile"}</span>
           </motion.div>
           <motion.h2
             initial={{ opacity: 0, y: 15 }}
@@ -69,7 +64,7 @@ export default function AIRecommended() {
             transition={{ delay: 0.1 }}
             className="text-3xl font-bold text-white tracking-tight mb-4"
           >
-            Curated <span className="text-gradient">just for you</span>
+            Featured: <span className="text-gradient">{layoutInfo?.featuredCategory || "UI Components"}</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 10 }}
@@ -78,11 +73,11 @@ export default function AIRecommended() {
             transition={{ delay: 0.2 }}
             className="text-[#8b7fb5] max-w-lg mx-auto"
           >
-            Our AI engine learns your preferences and recommends assets that match your exact workflow.
+            Adaptive Layer-1 personalization algorithm reorders recommendations based on your real-time browsing behavior.
           </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {products.map((product, i) => (
             <motion.div
               key={product.id}
@@ -91,7 +86,7 @@ export default function AIRecommended() {
               viewport={{ once: true }}
               transition={{ delay: i * 0.15 }}
             >
-              <ProductCard product={product} />
+              <ProductCard product={product} source="recommendation" />
             </motion.div>
           ))}
         </div>

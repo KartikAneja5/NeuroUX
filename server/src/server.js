@@ -1,10 +1,12 @@
 const app = require('./app');
 const connectDB = require('./config/db');
+const seedProducts = require('./seed');
 require('dotenv').config();
 
 const PORT = process.env.PORT || 5000;
 
-connectDB().then(() => {
+connectDB().then(async () => {
+  await seedProducts();
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });

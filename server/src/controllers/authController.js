@@ -29,7 +29,7 @@ exports.register = asyncHandler(async (req, res) => {
     email,
     passwordHash,
     role: role === 'admin' ? 'admin' : 'customer', // default to customer unless explicitly set to admin
-    isVerified: false,
+    isVerified: process.env.NODE_ENV === 'production' ? false : true,
     verificationToken
   });
 

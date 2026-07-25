@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { FiChevronRight, FiStar, FiPackage, FiLayers, FiExternalLink } from 'react-icons/fi';
 import ProductGallery from '../../components/product/ProductGallery';
 import ProductActions from '../../components/product/ProductActions';
@@ -12,13 +12,15 @@ import useTrackInteraction from '../../hooks/useTrackInteraction';
 
 export default function ProductDetailsPage() {
   const { id } = useParams();
+  const location = useLocation();
+  const currentSource = location.state?.source || 'browse';
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [purchaseTrigger, setPurchaseTrigger] = useState(false);
 
-  // Track product view interaction
-  useTrackInteraction(product?._id || product?.id, 'view');
+  // Track product view interaction with actual source
+  useTrackInteraction(product?._id || product?.id, 'view', currentSource);
 
   const handlePurchaseSuccess = () => {
     setPurchaseTrigger(prev => !prev);
@@ -103,9 +105,12 @@ export default function ProductDetailsPage() {
         <div className="flex flex-col lg:flex-row gap-12 items-start">
           
           {/* Left Column - Visuals */}
-          <div className="w-full lg:w-[58%] lg:sticky lg:top-24">
+          <motion.div 
+            layoutId={`product-image-${product.id}`}
+            className="w-full lg:w-[58%] lg:sticky lg:top-24"
+          >
             <ProductGallery productId={product.id} mainImage={product.previewImageUrl} title={product.name} />
-          </div>
+          </motion.div>
 
           {/* Right Column - Details & Actions */}
           <div className="w-full lg:w-[42%] flex flex-col gap-6">
@@ -123,9 +128,12 @@ export default function ProductDetailsPage() {
             </div>
 
             {/* Title */}
-            <h1 className="text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-tight">
+            <motion.h1 
+              layoutId={`product-title-${product.id}`}
+              className="text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-tight"
+            >
               {product.name}
-            </h1>
+            </motion.h1>
 
             {/* Rating & Reviews */}
             <div className="flex items-center gap-2">
@@ -170,6 +178,7 @@ export default function ProductDetailsPage() {
             <ProductActions 
               product={product}
               price={product.price} 
+              source={currentSource}
               onPurchaseSuccess={handlePurchaseSuccess} 
             />
             
@@ -203,7 +212,7 @@ export default function ProductDetailsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
               >
-                <ProductCard product={p} />
+                <ProductCard product={p} source="recommendation" />
               </motion.div>
             ))}
           </div>

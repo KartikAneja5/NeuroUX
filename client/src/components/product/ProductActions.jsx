@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiShoppingCart, FiCreditCard, FiCheck, FiDownload, FiLock } from 'react-icons/fi';
 import { CartContext } from '../../context/CartContext';
 
-export default function ProductActions({ product, price, license = 'Personal License', onPurchaseSuccess }) {
+export default function ProductActions({ product, price, license = 'Personal License', source = 'browse', onPurchaseSuccess }) {
   const [purchased, setPurchased] = useState(false);
   const { addToCart } = useContext(CartContext) || {};
   const navigate = useNavigate();
@@ -18,14 +18,14 @@ export default function ProductActions({ product, price, license = 'Personal Lic
 
   const handleBuyNow = () => {
     if (addToCart && product) {
-      addToCart(product);
+      addToCart(product, source);
       navigate('/customer/checkout');
     }
   };
 
   const handleAddToCart = () => {
     if (addToCart && product) {
-      addToCart(product);
+      addToCart(product, source);
       alert(`🛒 "${product.name}" added to cart!`);
     }
   };
@@ -42,8 +42,8 @@ export default function ProductActions({ product, price, license = 'Personal Lic
         <div>
           <p className="text-xs text-[#5a5275] font-medium mb-1 uppercase tracking-wider">{license}</p>
           <div className="flex items-baseline gap-2">
-            <span className="text-4xl font-bold text-white">${price}</span>
-            <span className="text-[#5a5275] line-through text-sm">${(price * 1.5).toFixed(0)}</span>
+            <span className="text-4xl font-bold text-white">₹{price}</span>
+            <span className="text-[#5a5275] line-through text-sm">₹{(price * 1.5).toFixed(0)}</span>
           </div>
         </div>
         <div className="pill pill-purple text-[10px]">33% off</div>

@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { FiShoppingCart, FiSearch, FiMenu, FiX, FiZap, FiLogOut, FiUser } from 'react-icons/fi';
 import { AuthContext } from '../../context/AuthContext';
 import { CartContext } from '../../context/CartContext';
@@ -7,12 +8,22 @@ import { CartContext } from '../../context/CartContext';
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  
+  const [bounce, setBounce] = useState(false);
+
   const { user, logoutAction } = useContext(AuthContext) || {};
   const { cart } = useContext(CartContext) || { cart: { items: [] } };
   const navigate = useNavigate();
 
   const cartCount = cart?.items?.reduce((acc, item) => acc + item.quantity, 0) || 0;
+
+  // Trigger bounce animation whenever cart item count increases
+  useEffect(() => {
+    if (cartCount > 0) {
+      setBounce(true);
+      const timer = setTimeout(() => setBounce(false), 600);
+      return () => clearTimeout(timer);
+    }
+  }, [cartCount]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -33,15 +44,19 @@ export default function Navbar() {
   ];
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-[rgba(8,7,18,0.85)] backdrop-blur-xl border-b border-[rgba(255,255,255,0.07)] shadow-[0_1px_40px_rgba(0,0,0,0.6)]' : 'bg-transparent'}`}>
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-[rgba(8,7,18,0.88)] backdrop-blur-xl border-b border-[rgba(255,255,255,0.07)] shadow-[0_1px_40px_rgba(0,0,0,0.6)]' : 'bg-transparent'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-[60px]">
           
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center shadow-glow-sm">
+            <motion.div 
+              whileHover={{ rotate: 180, scale: 1.1 }}
+              transition={{ type: "spring", stiffness: 200, damping: 10 }}
+              className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center shadow-glow-sm"
+            >
               <FiZap size={16} className="text-white" />
-            </div>
+            </motion.div>
             <span className="font-bold text-lg text-white tracking-tight">
               Neuro<span className="text-violet-400">UX</span>
             </span>
@@ -74,17 +89,25 @@ export default function Navbar() {
 
           {/* Right Actions */}
           <div className="hidden md:flex items-center gap-3">
-            <button className="p-2 text-[#8b7fb5] hover:text-white transition rounded-md hover:bg-white/5">
+            <Link to="/search" className="p-2 text-[#8b7fb5] hover:text-white transition rounded-md hover:bg-white/5" title="Search Marketplace">
               <FiSearch size={18} />
-            </button>
+            </Link>
+
+            {/* Shopping Cart with Bouncing Badge Micro-interaction */}
             <Link to="/customer/cart" className="relative p-2 text-[#8b7fb5] hover:text-white transition rounded-md hover:bg-white/5">
-              <FiShoppingCart size={18} />
+              <motion.div animate={bounce ? { scale: [1, 1.4, 0.9, 1.2, 1], rotate: [0, -10, 10, -5, 0] } : {}}>
+                <FiShoppingCart size={18} />
+              </motion.div>
               {cartCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-violet-600 rounded-full text-[10px] text-white flex items-center justify-center font-bold">
+                <motion.span 
+                  animate={bounce ? { scale: [1, 1.5, 1] } : {}}
+                  className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-violet-600 rounded-full text-[10px] text-white flex items-center justify-center font-bold shadow-glow-sm"
+                >
                   {cartCount}
-                </span>
+                </motion.span>
               )}
             </Link>
+
             <div className="w-px h-5 bg-white/10"></div>
             
             {user ? (
@@ -93,24 +116,28 @@ export default function Navbar() {
                   <FiUser className="text-violet-400" />
                   {user.name}
                 </span>
-                <button 
+                <motion.button 
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
                   onClick={handleLogout}
                   className="flex items-center gap-1.5 text-sm font-semibold text-rose-400 hover:text-rose-300 transition px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20"
                 >
                   <FiLogOut size={14} /> Log out
-                </button>
+                </motion.button>
               </div>
             ) : (
               <>
                 <Link to="/login" className="text-sm font-medium text-[#8b7fb5] hover:text-white transition px-3 py-1.5">
                   Log in
                 </Link>
-                <Link 
-                  to="/register" 
-                  className="text-sm font-semibold px-4 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white transition shadow-glow-sm"
-                >
-                  Sign up
-                </Link>
+                <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
+                  <Link 
+                    to="/register" 
+                    className="text-sm font-semibold px-4 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white transition shadow-glow-sm block"
+                  >
+                    Sign up
+                  </Link>
+                </motion.div>
               </>
             )}
           </div>

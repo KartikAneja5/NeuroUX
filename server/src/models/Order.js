@@ -9,6 +9,7 @@ const orderSchema = new mongoose.Schema({
     quantity: Number
   }],
   totalAmount: { type: Number, required: true },
+  abVariant: { type: String, enum: ['variant_A', 'variant_B'], default: 'variant_A' },
   status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'pending' }
 }, { timestamps: true });
 

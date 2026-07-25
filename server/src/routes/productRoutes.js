@@ -6,7 +6,10 @@ const authMiddleware = require('../middleware/authMiddleware');
 const adminMiddleware = require('../middleware/adminMiddleware');
 const upload = require('../middleware/uploadMiddleware');
 
+// Public catalog routes
 router.get('/', productController.getProducts);
+router.get('/homepage-layout', recommendationController.getHomepageLayout);
+router.get('/site-insights', recommendationController.getSiteInsights);
 router.get('/:id', productController.getProductById);
 
 // Admin-only endpoints with multi-file uploads

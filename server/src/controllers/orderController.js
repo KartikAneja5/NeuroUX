@@ -31,23 +31,28 @@ exports.checkout = asyncHandler(async (req, res) => {
     });
   }
 
+  const { abVariant } = req.body;
+
   // Create order
   const order = new Order({
     userId: req.user.id,
     items: orderItems,
     totalAmount: parseFloat(totalAmount.toFixed(2)),
+    abVariant: abVariant === 'variant_B' ? 'variant_B' : 'variant_A',
     status: 'completed' // Autocomplete checkout for mock e-commerce flow
   });
 
   await order.save();
 
   // Log "purchase" interaction (weight: 5) for recommendation model data
-  for (const item of orderItems) {
+  for (const item of cart.items) {
+    const prodId = item.productId._id || item.productId;
     const interaction = new Interaction({
       userId: req.user.id,
-      productId: item.productId,
+      productId: prodId,
       type: 'purchase',
-      weight: 5
+      weight: 5,
+      source: item.source || 'browse'
     });
     await interaction.save();
   }

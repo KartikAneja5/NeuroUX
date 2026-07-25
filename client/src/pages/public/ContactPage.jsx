@@ -56,9 +56,9 @@ export default function ContactPage() {
                   <FiMail size={16} />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-white mb-0.5">Email Support</h4>
+                  <h4 className="font-semibold text-white mb-0.5">Email Support & Contact</h4>
                   <a href="mailto:support@neuroux.com" className="text-[#8b7fb5] hover:text-white transition">support@neuroux.com</a>
-                  <p className="text-[10px] text-zinc-500 mt-1">Average response time: &lt; 24 hours</p>
+                  <p className="text-[10px] text-zinc-500 mt-1">Average response time: &lt; 12 hours</p>
                 </div>
               </div>
 
@@ -67,26 +67,26 @@ export default function ContactPage() {
                   <FiMessageSquare size={16} />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-white mb-0.5">Community Chat</h4>
-                  <a href="https://discord.gg/neuroux" target="_blank" rel="noopener noreferrer" className="text-[#8b7fb5] hover:text-white transition">Join our Discord Server</a>
-                  <p className="text-[10px] text-zinc-500 mt-1">Instant chat with core developers and creators.</p>
+                  <h4 className="font-semibold text-white mb-0.5">Community Chat & Work Enquiries</h4>
+                  <a href="https://discord.gg/neuroux" target="_blank" rel="noopener noreferrer" className="text-[#8b7fb5] hover:text-white transition">Join our Discord Community</a>
+                  <p className="text-[10px] text-zinc-500 mt-1">Direct chat for project work & custom design systems.</p>
                 </div>
               </div>
             </div>
 
             {/* Box 2: Social/Github */}
             <div className="glass p-6 rounded-2xl border border-white/5 space-y-4">
-              <h3 className="text-base font-bold text-white mb-1">Open Source</h3>
+              <h3 className="text-base font-bold text-white mb-1">Open Source & Portfolio</h3>
               <p className="text-xs text-[#8b7fb5] leading-relaxed">
-                Many of our foundational canvas wave scripts are open-sourced under the MIT license on GitHub. Check them out, star the repository, or contribute!
+                Explore our component source code repositories, star the project on GitHub, or reach out directly for custom development contracts!
               </p>
               <a 
-                href="https://github.com/neuroux" 
+                href="https://github.com/neuroux/NeuroUX" 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="inline-flex items-center gap-2 text-xs font-semibold text-white hover:text-violet-400 transition"
               >
-                <FiGithub size={15} /> github.com/neuroux
+                <FiGithub size={15} /> github.com/neuroux/NeuroUX
               </a>
             </div>
 

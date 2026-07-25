@@ -44,7 +44,7 @@ export default function AdminProductsPage() {
         description,
         livePreviewUrl: '#',
         previewImageUrl: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=800&q=80',
-        codeFileUrl: 'https://github.com/KartikAneja5/NeuroUX',
+        codeFileUrl: 'https://github.com/neuroux/NeuroUX',
         code,
         framework: 'react',
         tags: 'custom,component'
@@ -131,7 +131,7 @@ export default function AdminProductsPage() {
                     <span className="font-bold text-white">{p.name}</span>
                   </td>
                   <td className="px-6 py-4 text-[#c4b5fd] text-xs font-medium">{p.category}</td>
-                  <td className="px-6 py-4 font-mono font-semibold">${p.price.toFixed(2)}</td>
+                  <td className="px-6 py-4 font-mono font-semibold">₹{p.price}</td>
                   <td className="px-6 py-4 font-mono text-xs uppercase">{p.framework}</td>
                   <td className="px-6 py-4 text-right space-x-2">
                     <button

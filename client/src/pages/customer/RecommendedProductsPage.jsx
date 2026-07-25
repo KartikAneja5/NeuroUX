@@ -5,6 +5,7 @@ import ProductCard from '../../components/product/ProductCard';
 import { getMyOrders } from '../../api/orderApi';
 import { getProducts } from '../../api/productApi';
 import { getRecommendations } from '../../api/recommendationApi';
+import { ProductGridSkeleton } from '../../components/common/SkeletonLoader';
 
 export default function RecommendedProductsPage() {
   const [collabRecs, setCollabRecs] = useState([]);
@@ -57,8 +58,8 @@ export default function RecommendedProductsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#080712]">
-        <div className="w-12 h-12 border-4 border-violet-950 border-t-violet-500 rounded-full animate-spin shadow-glow-sm"></div>
+      <div className="min-h-screen bg-[#080712] pt-28 max-w-6xl mx-auto px-4">
+        <ProductGridSkeleton count={6} />
       </div>
     );
   }
@@ -96,30 +97,30 @@ export default function RecommendedProductsPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {collabRecs.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.id} product={product} source="recommendation" />
               ))}
             </div>
           )}
         </div>
 
-        {/* Section 2: Content-Based Similarity */}
+        {/* Section 2: Content-Based Recommendations */}
         <div>
           <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-6">
-            <FiLayers className="text-cyan-400" size={18} />
+            <FiLayers className="text-pink-400" size={18} />
             <div>
-              <h2 className="text-lg font-bold text-white">Category Affinity Suggestions</h2>
-              <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider block">Suggested based on product similarity</span>
+              <h2 className="text-lg font-bold text-white">Content-Based Feature Matches</h2>
+              <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider block">Suggested based on product tech stack & category</span>
             </div>
           </div>
 
           {contentRecs.length === 0 ? (
             <div className="text-center py-10 text-[#8b7fb5] text-sm">
-              More suggestions will appear here once you checkout.
+              No content matches found.
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {contentRecs.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.id} product={product} source="recommendation" />
               ))}
             </div>
           )}

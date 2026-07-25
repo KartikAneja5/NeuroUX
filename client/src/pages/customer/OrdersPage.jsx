@@ -86,7 +86,7 @@ export default function OrdersPage() {
                         {item.name}
                       </div>
                       <div className="text-white font-mono text-xs">
-                        ${item.price.toFixed(2)}
+                        ₹{item.price}
                       </div>
                     </div>
                   ))}
@@ -95,7 +95,7 @@ export default function OrdersPage() {
                 {/* Total */}
                 <div className="border-t border-white/5 pt-4 mt-4 flex justify-between items-baseline">
                   <span className="text-xs font-semibold text-[#8b7fb5] uppercase tracking-wider">Total Invoiced</span>
-                  <span className="text-lg font-extrabold text-white">${order.totalAmount.toFixed(2)}</span>
+                  <span className="text-lg font-extrabold text-white">₹{order.totalAmount}</span>
                 </div>
               </motion.div>
             ))}

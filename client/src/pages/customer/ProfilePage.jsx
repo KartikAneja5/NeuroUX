@@ -7,11 +7,12 @@ export default function ProfilePage() {
   const { user, setUser } = useContext(AuthContext) || { user: { name: 'Customer', email: 'customer@example.com' } };
 
   // Profile Form State
-  const [name, setName] = useState(user?.name || 'Kartik Aneja');
-  const [email, setEmail] = useState(user?.email || 'kartik@example.com');
+  const [name, setName] = useState(user?.name || 'NeuroUX Developer');
+  const [email, setEmail] = useState(user?.email || 'developer@neuroux.com');
+  const [bio, setBio] = useState(user?.bio || 'Building interactive UI components with React & Tailwind CSS.');
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [avatarSeed, setAvatarSeed] = useState(user?.avatarSeed || 'Kartik');
+  const [avatarSeed, setAvatarSeed] = useState(user?.avatarSeed || 'NeuroUX');
   
   // UI States
   const [success, setSuccess] = useState(false);

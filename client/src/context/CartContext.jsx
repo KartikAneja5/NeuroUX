@@ -8,6 +8,25 @@ export const CartProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const token = localStorage.getItem('token');
 
+  const mapCartItems = (dbItems) => {
+    return (dbItems || []).map(item => {
+      if (!item.productId) return null;
+      if (typeof item.productId === 'object') {
+        return {
+          product: {
+            ...item.productId,
+            id: item.productId._id || item.productId.id
+          },
+          quantity: item.quantity
+        };
+      }
+      return {
+        product: { id: item.productId, _id: item.productId },
+        quantity: item.quantity
+      };
+    }).filter(Boolean);
+  };
+
   // Load cart on mount or token change
   useEffect(() => {
     const loadCart = async () => {
@@ -17,15 +36,7 @@ export const CartProvider = ({ children }) => {
         try {
           const response = await getCart();
           const dbItems = response.data.items || [];
-          const mappedItems = dbItems.map(item => ({
-            product: item.productId ? {
-              ...item.productId,
-              id: item.productId._id
-            } : {},
-            quantity: item.quantity
-          })).filter(item => item.product.id);
-          
-          setCart({ items: mappedItems });
+          setCart({ items: mapCartItems(dbItems) });
         } catch (err) {
           console.error("Failed to load cart from database:", err);
         } finally {
@@ -46,29 +57,23 @@ export const CartProvider = ({ children }) => {
     }
   }, [cart]);
 
-  const addToCart = async (product) => {
+  const addToCart = async (product, source = 'browse') => {
     const prodId = product._id || product.id;
     const storedToken = localStorage.getItem('token');
+    const validSource = ['browse', 'recommendation'].includes(source) ? source : 'browse';
     
-    // Track interaction (view/cart)
+    // Track interaction (cart) with actual source
     if (storedToken) {
       import('../api/axiosInstance').then(m => {
-        m.default.post('/interactions', { productId: prodId, type: 'cart' }).catch(e => console.error(e));
+        m.default.post('/interactions', { productId: prodId, type: 'cart', source: validSource }).catch(e => console.error(e));
       });
     }
 
     if (storedToken) {
       try {
-        const response = await apiAddToCart({ productId: prodId, quantity: 1 });
+        const response = await apiAddToCart({ productId: prodId, quantity: 1, source: validSource });
         const dbItems = response.data.items || [];
-        const mappedItems = dbItems.map(item => ({
-          product: item.productId ? {
-            ...item.productId,
-            id: item.productId._id
-          } : {},
-          quantity: item.quantity
-        })).filter(item => item.product.id);
-        setCart({ items: mappedItems });
+        setCart({ items: mapCartItems(dbItems) });
       } catch (err) {
         console.error("Failed to add to database cart:", err);
       }
@@ -79,14 +84,14 @@ export const CartProvider = ({ children }) => {
           return {
             items: prev.items.map((item) =>
               item.product.id === prodId
-                ? { ...item, quantity: item.quantity + 1 }
+                ? { ...item, quantity: item.quantity + 1, source: validSource }
                 : item
             ),
           };
         }
         const normalizedProduct = { ...product, id: prodId };
         return {
-          items: [...prev.items, { product: normalizedProduct, quantity: 1 }],
+          items: [...prev.items, { product: normalizedProduct, quantity: 1, source: validSource }],
         };
       });
     }
@@ -98,14 +103,7 @@ export const CartProvider = ({ children }) => {
       try {
         const response = await apiRemoveFromCart(productId);
         const dbItems = response.data.items || [];
-        const mappedItems = dbItems.map(item => ({
-          product: item.productId ? {
-            ...item.productId,
-            id: item.productId._id
-          } : {},
-          quantity: item.quantity
-        })).filter(item => item.product.id);
-        setCart({ items: mappedItems });
+        setCart({ items: mapCartItems(dbItems) });
       } catch (err) {
         console.error("Failed to remove from database cart:", err);
       }
@@ -127,14 +125,7 @@ export const CartProvider = ({ children }) => {
       try {
         const response = await apiUpdateCartItem({ productId, quantity });
         const dbItems = response.data.items || [];
-        const mappedItems = dbItems.map(item => ({
-          product: item.productId ? {
-            ...item.productId,
-            id: item.productId._id
-          } : {},
-          quantity: item.quantity
-        })).filter(item => item.product.id);
-        setCart({ items: mappedItems });
+        setCart({ items: mapCartItems(dbItems) });
       } catch (err) {
         console.error("Failed to update database cart:", err);
       }

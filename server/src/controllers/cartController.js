@@ -12,7 +12,8 @@ exports.getCart = asyncHandler(async (req, res) => {
 });
 
 exports.addToCart = asyncHandler(async (req, res) => {
-  const { productId, quantity = 1 } = req.body;
+  const { productId, quantity = 1, source = 'browse' } = req.body;
+  const validSource = ['browse', 'recommendation'].includes(source) ? source : 'browse';
 
   if (!productId) {
     return res.status(400).json({ message: "Product ID is required." });
@@ -32,8 +33,9 @@ exports.addToCart = asyncHandler(async (req, res) => {
   const itemIndex = cart.items.findIndex(item => item.productId.toString() === productId);
   if (itemIndex > -1) {
     cart.items[itemIndex].quantity += parseInt(quantity);
+    cart.items[itemIndex].source = validSource;
   } else {
-    cart.items.push({ productId, quantity: parseInt(quantity) });
+    cart.items.push({ productId, quantity: parseInt(quantity), source: validSource });
   }
 
   await cart.save();

@@ -586,6 +586,82 @@ export default function ComponentPreviewSwitcher({ productId, productName }) {
       );
     case 'aurora':
       return <div className="w-full h-48 relative"><AuroraBg /></div>;
+    case 'cyberpunk-neon-button':
+      return (
+        <div className="py-6 text-center">
+          <button className="relative px-8 py-3.5 bg-black border-2 border-cyan-400 text-cyan-400 font-mono font-bold tracking-widest uppercase text-sm hover:bg-cyan-400 hover:text-black transition-all duration-200 shadow-[0_0_20px_rgba(34,211,238,0.5)] active:scale-95">
+            <span className="absolute -top-1 -left-1 w-2 h-2 bg-cyan-400 inline-block" />
+            <span className="absolute -bottom-1 -right-1 w-2 h-2 bg-cyan-400 inline-block" />
+            EXECUTE DEMO
+          </button>
+        </div>
+      );
+    case 'floating-glass-input':
+      return (
+        <div className="py-6 flex justify-center w-full">
+          <div className="relative w-full max-w-sm">
+            <input
+              type="text"
+              className="peer w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-transparent focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 backdrop-blur-md transition-all text-sm"
+              placeholder="Email Address"
+            />
+            <label className="absolute left-4 top-3 text-xs text-zinc-400 transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:text-zinc-500 peer-placeholder-shown:top-3.5 peer-focus:top-1 peer-focus:text-[10px] peer-focus:text-violet-400 font-medium">
+              Email Address
+            </label>
+          </div>
+        </div>
+      );
+    case 'glow-toggle-switch':
+      return (
+        <div className="py-6 flex justify-center">
+          <label className="flex items-center gap-3 cursor-pointer select-none">
+            <span className="text-xs font-semibold text-zinc-300">Dark Mode Active</span>
+            <div className="w-12 h-6 rounded-full p-1 bg-violet-600 shadow-[0_0_15px_rgba(139,92,246,0.5)] border border-white/10">
+              <div className="w-4 h-4 rounded-full bg-white translate-x-6 transition-transform duration-300" />
+            </div>
+          </label>
+        </div>
+      );
+    case 'floating-glass-navbar':
+      return (
+        <div className="w-full py-4 px-2">
+          <nav className="flex items-center justify-between px-6 py-3 bg-white/5 border border-white/10 rounded-full backdrop-blur-xl max-w-xl mx-auto shadow-2xl">
+            <div className="font-bold text-white tracking-tight text-sm">Neuro<span className="text-violet-400">UX</span></div>
+            <div className="flex gap-4 text-xs font-medium text-zinc-400">
+              <a href="#" className="text-white">Features</a>
+              <a href="#" className="hover:text-white transition">Catalog</a>
+            </div>
+            <button className="px-3.5 py-1.5 bg-violet-600 text-white text-xs font-semibold rounded-full shadow-glow">Start Free</button>
+          </nav>
+        </div>
+      );
+    case 'glow-toast-notification':
+      return (
+        <div className="py-4 flex justify-center">
+          <div className="flex items-start gap-3 p-4 bg-zinc-950 border border-emerald-500/30 rounded-2xl shadow-[0_0_25px_rgba(16,185,129,0.15)] max-w-sm">
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-sm shrink-0">✓</div>
+            <div>
+              <h4 className="text-xs font-bold text-white mb-0.5">Order Confirmed</h4>
+              <p className="text-xs text-zinc-400 leading-relaxed">Your invoice #8920 has been generated successfully.</p>
+            </div>
+          </div>
+        </div>
+      );
+    case 'ai-chat-interface-prompts':
+      return (
+        <div className="w-full max-w-md mx-auto my-2 bg-zinc-950 border border-white/10 rounded-3xl p-5 space-y-3">
+          <div className="flex items-center gap-3 pb-2 border-b border-white/8">
+            <div className="w-7 h-7 rounded-full bg-violet-600 flex items-center justify-center font-bold text-xs">AI</div>
+            <div>
+              <h4 className="text-xs font-bold text-white">Neuro AI Assistant</h4>
+              <span className="text-[9px] text-emerald-400 font-mono">GPT-4o Active</span>
+            </div>
+          </div>
+          <div className="p-3 bg-white/5 rounded-2xl border border-white/5 text-xs text-zinc-300 leading-relaxed">
+            Hello! How can I assist you with your component design system today?
+          </div>
+        </div>
+      );
     default:
       // Fallback
       return (

@@ -9,11 +9,8 @@ export default function ComponentShowcase() {
   const [activeCategory, setActiveCategory] = useState('Hero');
 
   return (
-    <section className="py-24 bg-[#0a0913] relative overflow-hidden">
-      <div className="absolute inset-0 dot-grid opacity-20 pointer-events-none" />
-      
-      {/* Soft central glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-cyan-900/20 blur-[150px] rounded-full pointer-events-none" />
+    <section className="py-24 bg-[#080712] relative overflow-hidden">
+      <div className="absolute inset-0 dot-grid opacity-15 pointer-events-none" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         

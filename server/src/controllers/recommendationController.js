@@ -6,12 +6,11 @@ require('dotenv').config();
 const RECOMMENDER_URL = process.env.RECOMMENDER_URL || 'http://localhost:8000';
 
 exports.getRecommendations = asyncHandler(async (req, res) => {
-  const { id } = req.params; // Current product ID
+  const { id } = req.params;
   const userId = req.query.user_id || '';
   const limit = parseInt(req.query.limit || 6);
 
   try {
-    // Call Django recommender API
     const response = await axios.get(`${RECOMMENDER_URL}/api/recommend/${id}/`, {
       params: { user_id: userId, top_n: limit }
     });
@@ -19,10 +18,8 @@ exports.getRecommendations = asyncHandler(async (req, res) => {
     const recommendations = response.data.recommendations || [];
     const recommendedIds = recommendations.map(r => r.productId);
 
-    // Fetch product details from DB
     const products = await Product.find({ _id: { $in: recommendedIds }, isActive: true });
 
-    // Order products to match the scores list returned by Django
     const sortedProducts = recommendedIds
       .map(recId => products.find(p => p._id.toString() === recId))
       .filter(Boolean);
@@ -31,7 +28,6 @@ exports.getRecommendations = asyncHandler(async (req, res) => {
   } catch (error) {
     console.error('Error querying Django recommender:', error.message);
 
-    // Resilient fallback: Recommend other products in the same category
     const currentProduct = await Product.findById(id);
     const categoryQuery = currentProduct ? { category: currentProduct.category } : {};
 
@@ -42,5 +38,52 @@ exports.getRecommendations = asyncHandler(async (req, res) => {
     }).limit(limit);
 
     res.json(fallbackProducts);
+  }
+});
+
+// Phase 3 Proxy: Homepage Personalized Layout (Layer 1)
+exports.getHomepageLayout = asyncHandler(async (req, res) => {
+  const userId = req.query.user_id || '';
+  const sessionToken = req.query.session_token || '';
+
+  try {
+    const endpoint = userId ? `${RECOMMENDER_URL}/api/homepage-layout/${userId}/` : `${RECOMMENDER_URL}/api/homepage-layout/`;
+    const response = await axios.get(endpoint, {
+      params: { session_token: sessionToken }
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error proxying homepage layout:', error.message);
+    res.json({
+      userId: userId || sessionToken || 'guest',
+      isColdStart: true,
+      featuredCategory: "Basic UI Components",
+      categoryOrder: ["Basic UI Components", "Navigation Components", "Data Display Components"],
+      showNewArrivalsBanner: true,
+      personalizedBadge: "🔥 Trending UI/UX Components",
+      featuredProducts: []
+    });
+  }
+});
+
+// Phase 4 Proxy: Aggregate Site Insights (Layer 2)
+exports.getSiteInsights = asyncHandler(async (req, res) => {
+  try {
+    const response = await axios.get(`${RECOMMENDER_URL}/api/site-insights/`);
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error proxying site insights:', error.message);
+    res.json({
+      generatedAt: new Date(),
+      insights: [
+        {
+          title: "System Telemetry Active",
+          type: "info",
+          metric: "Monitoring",
+          description: "NeuroUX Layer-2 Business Intelligence engine is active and collecting user interaction signals."
+        }
+      ]
+    });
   }
 });
