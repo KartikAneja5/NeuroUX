@@ -25,8 +25,8 @@ export default function AIRecommended() {
           ...p,
           id: p._id,
           categoryId: (p.category || 'general').toLowerCase().replace(/\s+/g, '-'),
-          rating: 5.0,
-          reviews: 1,
+          rating: p.averageRating ?? p.rating ?? 5.0,
+          reviews: p.numReviews ?? p.reviews ?? 0,
           author: { name: 'NeuroUX Team', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=NeuroUX' }
         }));
 

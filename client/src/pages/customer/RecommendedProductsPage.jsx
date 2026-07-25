@@ -39,8 +39,8 @@ export default function RecommendedProductsPage() {
             ...p,
             id: p._id,
             categoryId: p.category.toLowerCase().replace(/\s+/g, '-'),
-            rating: p.rating || 5.0,
-            reviews: p.reviews || 1,
+            rating: p.averageRating ?? p.rating ?? 5.0,
+            reviews: p.numReviews ?? p.reviews ?? 0,
             author: p.author || { name: 'NeuroUX Team', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=NeuroUX' }
           }));
 
