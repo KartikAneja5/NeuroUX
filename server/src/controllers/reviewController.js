@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Review = require('../models/Review');
 const Product = require('../models/Product');
 const Order = require('../models/Order');
@@ -45,7 +46,7 @@ exports.addOrUpdateReview = asyncHandler(async (req, res) => {
 
   // Recalculate average rating & numReviews for the Product
   const stats = await Review.aggregate([
-    { $match: { productId: product._id } },
+    { $match: { productId: new mongoose.Types.ObjectId(productId) } },
     {
       $group: {
         _id: '$productId',
