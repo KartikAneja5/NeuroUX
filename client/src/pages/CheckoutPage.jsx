@@ -5,6 +5,21 @@ import { FiCreditCard, FiLock, FiCheckCircle, FiLoader, FiShoppingBag, FiArrowRi
 import { CartContext } from '../context/CartContext';
 import { checkout } from '../api/orderApi';
 import { getOrAssignABVariant } from '../utils/abTesting';
+import { createRazorpayOrder, verifyRazorpayPayment } from '../api/paymentApi';
+
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
 
 export default function CheckoutPage() {
   const { cart, clearCart } = useContext(CartContext) || { cart: { items: [] } };
@@ -42,36 +57,85 @@ export default function CheckoutPage() {
     }
   }, [items, success, navigate]);
 
-  const handleSubmitPayment = (e) => {
+  const handleSubmitPayment = async (e) => {
     e.preventDefault();
-    if (!name || !email || !cardNumber || !expiry || !cvv) {
-      alert('Please fill in all payment details.');
+    if (!name || !email) {
+      alert('Please enter your Name and Email address.');
       return;
     }
 
     setPaying(true);
 
-    // Call checkout API with A/B variant assignment
-    checkout({ abVariant: getOrAssignABVariant() })
-      .then((response) => {
-        const order = response.data;
-        setOrderId(order._id);
-
-        // 1. Mark each product as purchased in localStorage to unlock preview code editor
-        items.forEach(item => {
-          localStorage.setItem(`purchased_${item.product._id || item.product.id}`, 'true');
-        });
-
-        // 2. Update UI state and clear cart
+    try {
+      const resScript = await loadRazorpayScript();
+      if (!resScript) {
+        alert('Failed to load Razorpay Payment Gateway. Please check your connection.');
         setPaying(false);
-        setSuccess(true);
-        if (clearCart) clearCart();
-      })
-      .catch((err) => {
-        console.error("Checkout failed:", err);
-        alert(err.response?.data?.message || 'Checkout failed. Please try again.');
-        setPaying(false);
-      });
+        return;
+      }
+
+      // 1. Create Pending Mongo Order
+      const response = await checkout({ abVariant: getOrAssignABVariant() });
+      const mongoOrder = response.data;
+      setOrderId(mongoOrder._id);
+
+      // 2. Create Razorpay Order
+      const rzpOrder = await createRazorpayOrder(total);
+
+      // 3. Configure Razorpay Modal Options
+      const options = {
+        key: rzpOrder.key,
+        amount: rzpOrder.amount,
+        currency: rzpOrder.currency || 'INR',
+        name: 'NeuroUX Marketplace',
+        description: `Payment for ${items.length} UI Component(s)`,
+        image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=NeuroUX',
+        order_id: rzpOrder.id,
+        handler: async (rzpRes) => {
+          try {
+            await verifyRazorpayPayment({
+              razorpay_order_id: rzpRes.razorpay_order_id,
+              razorpay_payment_id: rzpRes.razorpay_payment_id,
+              razorpay_signature: rzpRes.razorpay_signature,
+              orderId: mongoOrder._id
+            });
+
+            // Unlock source code for purchased items
+            items.forEach(item => {
+              localStorage.setItem(`purchased_${item.product._id || item.product.id}`, 'true');
+            });
+
+            setPaying(false);
+            setSuccess(true);
+            if (clearCart) clearCart();
+          } catch (verifyErr) {
+            console.error("Razorpay verification failed:", verifyErr);
+            alert("Payment signature verification failed. Please contact support.");
+            setPaying(false);
+          }
+        },
+        prefill: {
+          name,
+          email,
+        },
+        theme: {
+          color: '#a855f7'
+        },
+        modal: {
+          ondismiss: () => {
+            setPaying(false);
+          }
+        }
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
+
+    } catch (err) {
+      console.error("Payment initialization failed:", err);
+      alert(err.response?.data?.message || 'Payment initialization failed. Please try again.');
+      setPaying(false);
+    }
   };
 
   return (
