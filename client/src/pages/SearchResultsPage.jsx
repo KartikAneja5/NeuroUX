@@ -10,17 +10,14 @@ import { dummyCategories } from '../data/dummyData';
 
 export default function SearchResultsPage() {
   const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
-  const initialQuery = queryParams.get('q') || '';
-  const initialCategory = queryParams.get('category') || 'all';
-  const gridContainerRef = useRef(null);
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState(initialQuery);
-  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedFramework, setSelectedFramework] = useState('all');
   const [priceRange, setPriceRange] = useState('all');
+  const gridContainerRef = useRef(null);
 
   // Spotlight mouse tracker for marketplace grid
   const handleMouseMove = (e) => {
@@ -38,15 +35,16 @@ export default function SearchResultsPage() {
     gridContainerRef.current.style.setProperty('--spotlight-y', `-1000px`);
   };
 
+  // Re-sync filters whenever the URL changes
   useEffect(() => {
-    setSearchQuery(initialQuery);
-  }, [initialQuery]);
-
-  useEffect(() => {
-    if (initialCategory) {
-      setSelectedCategory(initialCategory);
-    }
-  }, [initialCategory]);
+    const queryParams = new URLSearchParams(location.search);
+    const q = queryParams.get('q') || '';
+    const cat = queryParams.get('category') || 'all';
+    setSearchQuery(q);
+    setSelectedCategory(cat);
+    setSelectedFramework('all');
+    setPriceRange('all');
+  }, [location.search]);
 
   useEffect(() => {
     const fetchCatalog = async () => {

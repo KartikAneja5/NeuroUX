@@ -1,6 +1,8 @@
 import React from 'react';
 import { FiSearch, FiFilter, FiX } from 'react-icons/fi';
 
+const normalizeSlug = (str) => (str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
 export default function ProductFilterBar({
   searchQuery,
   onSearchChange,
@@ -17,6 +19,11 @@ export default function ProductFilterBar({
   const frameworks = ['all', 'react', 'html-css', 'vue'];
 
   const hasActiveFilters = searchQuery || selectedCategory !== 'all' || selectedFramework !== 'all' || priceRange !== 'all';
+
+  const isCategoryActive = (catId) => {
+    if (selectedCategory === 'all' || !selectedCategory) return false;
+    return normalizeSlug(selectedCategory) === normalizeSlug(catId);
+  };
 
   return (
     <div className="glass p-4 sm:p-5 rounded-2xl border border-white/8 bg-[#0c0b1e]/60 backdrop-blur-md mb-8 space-y-4 select-none">
@@ -65,9 +72,9 @@ export default function ProductFilterBar({
           {categories.map((cat) => (
             <button
               key={cat.id || cat._id}
-              onClick={() => onCategoryChange(cat.id || cat._id)}
+              onClick={() => onCategoryChange(cat.name || cat.id)}
               className={`px-3 py-1.5 rounded-lg font-semibold whitespace-nowrap transition ${
-                selectedCategory === (cat.id || cat._id)
+                isCategoryActive(cat.id || cat._id) || isCategoryActive(cat.name)
                   ? 'bg-violet-600 text-white shadow-glow-sm'
                   : 'bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10'
               }`}

@@ -140,11 +140,11 @@ export default function Hero() {
   }, []);
 
   const heroCategories = [
-    { label: 'Basic UI', category: 'basic-ui-components' },
-    { label: 'Navigation', category: 'navigation-components' },
-    { label: 'Dashboards', category: 'dashboard-components' },
-    { label: 'AI Products', category: 'ai-product-components' },
-    { label: 'E-commerce', category: 'e-commerce-components' }
+    { label: 'Basic UI', category: 'Basic UI Components' },
+    { label: 'Navigation', category: 'Navigation Components' },
+    { label: 'Dashboards', category: 'Dashboard Components' },
+    { label: 'AI Products', category: 'AI Product Components' },
+    { label: 'E-commerce', category: 'E-commerce Components' }
   ];
 
   return (
@@ -173,7 +173,7 @@ export default function Hero() {
           
           {/* Clickable Badge Pill */}
           <Link 
-            to="/search"
+            to="/marketplace"
             className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-slate-700 bg-slate-900/90 backdrop-blur-md mb-6 shadow-md cursor-pointer hover:border-violet-400 hover:bg-slate-800 transition-all z-30 pointer-events-auto"
           >
             <span className="text-[10px] font-extrabold bg-violet-600 px-2 py-0.5 rounded text-white uppercase tracking-wider flex items-center gap-1">
@@ -208,7 +208,7 @@ export default function Hero() {
           <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 z-30 pointer-events-auto mb-8">
             <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
               <Link 
-                to="/search"
+                to="/marketplace"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-violet-600 hover:bg-violet-500 text-white font-bold rounded-2xl transition shadow-md border border-violet-400/30 text-sm cursor-pointer z-30 pointer-events-auto"
               >
                 Browse Marketplace <FiArrowRight size={16} />
@@ -217,7 +217,7 @@ export default function Hero() {
 
             <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
               <Link 
-                to="/search"
+                to="/marketplace"
                 className="inline-flex items-center justify-center gap-2 px-6 py-4 bg-slate-900/90 hover:bg-slate-800 text-slate-200 hover:text-white font-semibold rounded-2xl transition border border-slate-700 text-sm backdrop-blur-md cursor-pointer z-30 pointer-events-auto"
               >
                 Live Interactive Demo
@@ -233,7 +233,7 @@ export default function Hero() {
             {heroCategories.map(cat => (
               <button
                 key={cat.label}
-                onClick={() => navigate(`/search?category=${cat.category}`)}
+                onClick={() => navigate(`/marketplace?category=${encodeURIComponent(cat.category)}`)}
                 className="px-3 py-1 bg-slate-900/90 hover:bg-violet-600/30 hover:border-violet-500 border border-slate-800 rounded-lg text-xs font-medium text-slate-200 transition cursor-pointer z-30 pointer-events-auto"
               >
                 {cat.label}
