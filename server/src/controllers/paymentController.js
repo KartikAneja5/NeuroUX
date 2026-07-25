@@ -46,13 +46,19 @@ exports.verifyRazorpayPayment = asyncHandler(async (req, res) => {
   }
 
   // Generate HMAC SHA256 expected signature
+  const secret = (process.env.RAZORPAY_KEY_SECRET || 'S1q1gKnNx9ETYChqIsV7Rbag').trim();
   const body = razorpay_order_id + '|' + razorpay_payment_id;
   const expectedSignature = crypto
-    .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'S1q1gKnNx9ETYChqIsV7Rbag')
+    .createHmac('sha256', secret)
     .update(body.toString())
     .digest('hex');
 
+  console.log(`[Razorpay Verification] Order: ${razorpay_order_id} | Payment: ${razorpay_payment_id}`);
+  console.log(`[Razorpay Verification] Expected: ${expectedSignature}`);
+  console.log(`[Razorpay Verification] Received: ${razorpay_signature}`);
+
   if (expectedSignature !== razorpay_signature) {
+    console.error("[Razorpay Verification Failure] Signature mismatch!");
     return res.status(400).json({ message: "Invalid payment signature verification failed." });
   }
 

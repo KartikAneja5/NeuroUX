@@ -93,8 +93,9 @@ export default function CheckoutPage() {
         order_id: rzpOrder.id,
         handler: async (rzpRes) => {
           try {
+            console.log("Razorpay Response Object:", rzpRes);
             await verifyRazorpayPayment({
-              razorpay_order_id: rzpRes.razorpay_order_id,
+              razorpay_order_id: rzpRes.razorpay_order_id || rzpOrder.id,
               razorpay_payment_id: rzpRes.razorpay_payment_id,
               razorpay_signature: rzpRes.razorpay_signature,
               orderId: mongoOrder._id
@@ -187,45 +188,19 @@ export default function CheckoutPage() {
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-[11px] font-semibold text-[#8b7fb5] uppercase tracking-wider mb-1">Card Number</label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          value={cardNumber}
-                          onChange={(e) => setCardNumber(e.target.value)}
-                          placeholder="4242 •••• •••• 4242"
-                          className="w-full px-4 py-3 bg-white/5 border border-white/8 rounded-xl text-sm placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-violet-500 transition font-mono"
-                          required
-                        />
-                        <FiCreditCard className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
+                    <div className="p-4 rounded-2xl bg-violet-600/10 border border-violet-500/20 text-violet-300 text-xs flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center text-violet-400 font-extrabold text-base">
+                          ₹
+                        </div>
+                        <div>
+                          <p className="font-bold text-white text-sm">Razorpay Secure Payment</p>
+                          <p className="text-[11px] text-zinc-400">UPI (GPay, PhonePe, Paytm), Cards & NetBanking</p>
+                        </div>
                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-[11px] font-semibold text-[#8b7fb5] uppercase tracking-wider mb-1">Expiry Date</label>
-                        <input
-                          type="text"
-                          value={expiry}
-                          onChange={(e) => setExpiry(e.target.value)}
-                          placeholder="12/28"
-                          className="w-full px-4 py-3 bg-white/5 border border-white/8 rounded-xl text-sm placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-violet-500 transition font-mono"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] font-semibold text-[#8b7fb5] uppercase tracking-wider mb-1">CVC / CVV</label>
-                        <input
-                          type="password"
-                          value={cvv}
-                          onChange={(e) => setCvv(e.target.value)}
-                          placeholder="•••"
-                          maxLength={4}
-                          className="w-full px-4 py-3 bg-white/5 border border-white/8 rounded-xl text-sm placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-violet-500 transition font-mono"
-                          required
-                        />
-                      </div>
+                      <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono font-bold rounded-full uppercase">
+                        Instant
+                      </span>
                     </div>
 
                     <motion.button
