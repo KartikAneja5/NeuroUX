@@ -39,7 +39,7 @@ exports.createRazorpayOrder = asyncHandler(async (req, res) => {
 // Verify Razorpay Payment Signature
 exports.verifyRazorpayPayment = asyncHandler(async (req, res) => {
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = req.body;
-  const userId = req.user.id || req.user._id;
+  const userId = req.user?.id || req.user?._id;
 
   if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
     return res.status(400).json({ message: "Missing Razorpay verification parameters." });
