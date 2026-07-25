@@ -162,3 +162,20 @@ exports.deleteProduct = asyncHandler(async (req, res) => {
 
   res.json({ message: "Product successfully deleted." });
 });
+
+exports.getCategories = asyncHandler(async (req, res) => {
+  const categoryStats = await Product.aggregate([
+    { $match: { isActive: true } },
+    { $group: { _id: '$category', count: { $sum: 1 } } },
+    { $sort: { count: -1 } }
+  ]);
+
+  const categories = categoryStats.map(item => ({
+    id: item._id.toLowerCase().replace(/\s+/g, '-'),
+    name: item._id.charAt(0).toUpperCase() + item._id.slice(1),
+    categoryKey: item._id,
+    count: item.count
+  }));
+
+  res.json(categories);
+});

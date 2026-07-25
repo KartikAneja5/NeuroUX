@@ -12,6 +12,7 @@ const reviewController = require('../controllers/reviewController');
 router.get('/', productController.getProducts);
 router.get('/homepage-layout', recommendationController.getHomepageLayout);
 router.get('/site-insights', recommendationController.getSiteInsights);
+router.get('/categories', productController.getCategories);
 router.get('/:id/reviews', reviewController.getProductReviews);
 router.post('/:id/reviews', authMiddleware, reviewController.addOrUpdateReview);
 router.get('/:id', productController.getProductById);

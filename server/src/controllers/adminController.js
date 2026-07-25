@@ -58,13 +58,56 @@ exports.getAnalytics = asyncHandler(async (req, res) => {
     }
   });
 
+  // 7-Day Weekly Revenue Trend
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+  sevenDaysAgo.setHours(0, 0, 0, 0);
+
+  const dailyOrders = await Order.aggregate([
+    { $match: { status: 'completed', createdAt: { $gte: sevenDaysAgo } } },
+    {
+      $group: {
+        _id: { $dayOfWeek: '$createdAt' },
+        dailyTotal: { $sum: '$totalAmount' }
+      }
+    }
+  ]);
+
+  const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const weeklyRevenueMap = {};
+  dailyOrders.forEach(d => {
+    const dayName = daysOfWeek[d._id - 1];
+    if (dayName) weeklyRevenueMap[dayName] = Math.round(d.dailyTotal);
+  });
+
+  const weeklyRevenue = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => ({
+    day,
+    amount: weeklyRevenueMap[day] || 0
+  }));
+
+  // Category Share Breakdown
+  const catSharesRaw = await Product.aggregate([
+    { $match: { isActive: true } },
+    { $group: { _id: '$category', count: { $sum: 1 } } },
+    { $sort: { count: -1 } }
+  ]);
+
+  const totalProds = catalogSize || 1;
+  const categoryShares = catSharesRaw.map(c => ({
+    category: c._id.charAt(0).toUpperCase() + c._id.slice(1),
+    count: c.count,
+    sharePct: Math.round((c.count / totalProds) * 100)
+  }));
+
   res.json({
     revenue,
     salesCount,
     activeCustomers,
     catalogSize,
     recentOrders,
-    abTestResults
+    abTestResults,
+    weeklyRevenue,
+    categoryShares
   });
 });
 

@@ -8,6 +8,8 @@ export default function AdminAnalyticsPage() {
   const [salesCount, setSalesCount] = useState(0);
   const [userCount, setUserCount] = useState(0);
   const [productCount, setProductCount] = useState(0);
+  const [weeklyRevenue, setWeeklyRevenue] = useState([]);
+  const [categoryShares, setCategoryShares] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,6 +21,8 @@ export default function AdminAnalyticsPage() {
         setSalesCount(data.salesCount || 0);
         setUserCount(data.activeCustomers || 0);
         setProductCount(data.catalogSize || 0);
+        setWeeklyRevenue(data.weeklyRevenue || []);
+        setCategoryShares(data.categoryShares || []);
       } catch (err) {
         console.error("Failed to load analytics details:", err);
       } finally {
@@ -35,16 +39,10 @@ export default function AdminAnalyticsPage() {
     { label: 'Catalog Assets', value: productCount, change: 'Live DB', icon: <FiPackage size={18} /> },
   ];
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#080712]">
-        <div className="w-12 h-12 border-4 border-violet-950 border-t-violet-500 rounded-full animate-spin shadow-glow-sm"></div>
-      </div>
-    );
-  }
+  const colors = ['bg-violet-500', 'bg-cyan-500', 'bg-pink-500', 'bg-amber-500', 'bg-emerald-500'];
 
   return (
-    <div className="min-h-screen bg-[#080712] pt-28 pb-24 text-white relative">
+    <div className="min-h-screen bg-[#080712] pt-28 pb-24 text-white relative select-none">
       <div className="absolute inset-0 dot-grid opacity-15 pointer-events-none" />
       <div className="max-w-5xl mx-auto px-4 relative z-10">
         
@@ -52,7 +50,7 @@ export default function AdminAnalyticsPage() {
           <h1 className="text-3xl font-extrabold tracking-tight">
             Sales & Platform <span className="text-violet-400">Analytics</span>
           </h1>
-          <p className="text-sm text-[#8b7fb5] mt-1 font-light">Inspect platform revenue distributions and category analytics.</p>
+          <p className="text-sm text-[#8b7fb5] mt-1 font-light">Inspect real-time platform revenue distributions and category analytics.</p>
         </div>
 
         {/* Highlight widgets */}
@@ -80,7 +78,7 @@ export default function AdminAnalyticsPage() {
           <div className="md:col-span-2 glass p-6 rounded-2xl border border-white/5 bg-[#0c0b1e]/40 flex flex-col justify-between">
             <div>
               <h3 className="font-bold text-base mb-1">Revenue Trend (7 Days)</h3>
-              <p className="text-[10px] text-[#8b7fb5] uppercase tracking-wider font-semibold mb-4">simulated weekly breakdown</p>
+              <p className="text-[10px] text-emerald-400 uppercase tracking-wider font-semibold mb-4">● Live Database Order Sums</p>
             </div>
             
             {/* Inline SVG Chart */}
@@ -96,7 +94,7 @@ export default function AdminAnalyticsPage() {
                 <path
                   d="M0,45 Q15,40 30,30 T60,25 T90,15 T100,5 L100,50 L0,50 Z"
                   fill="url(#chart-glow)"
-                  opacity="0.1"
+                  opacity="0.15"
                 />
                 <defs>
                   <linearGradient id="chart-glow" x1="0" y1="0" x2="0" y2="1">
@@ -107,38 +105,42 @@ export default function AdminAnalyticsPage() {
               </svg>
               
               <div className="flex justify-between w-full text-[9px] text-[#8b7fb5] font-mono z-10 pt-4">
-                <span>Mon</span>
-                <span>Tue</span>
-                <span>Wed</span>
-                <span>Thu</span>
-                <span>Fri</span>
-                <span>Sat</span>
-                <span>Sun</span>
+                {(weeklyRevenue.length > 0 ? weeklyRevenue : [
+                  { day: 'Mon', amount: 0 }, { day: 'Tue', amount: 0 }, { day: 'Wed', amount: 0 },
+                  { day: 'Thu', amount: 0 }, { day: 'Fri', amount: 0 }, { day: 'Sat', amount: 0 }, { day: 'Sun', amount: 0 }
+                ]).map((item, idx) => (
+                  <div key={idx} className="flex flex-col items-center">
+                    <span className="text-[9px] text-violet-300 font-bold mb-0.5">${item.amount}</span>
+                    <span className="text-zinc-500 uppercase">{item.day}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
           {/* Category distribution */}
           <div className="glass p-6 rounded-2xl border border-white/5 bg-[#0c0b1e]/40 space-y-4">
-            <h3 className="font-bold text-base mb-1">Category Shares</h3>
+            <h3 className="font-bold text-base mb-1">Catalog Shares</h3>
             
-            <div className="space-y-3.5 text-xs">
-              {[
-                { category: 'Text Animations', share: '38%', width: 'w-[38%]', color: 'bg-violet-500' },
-                { category: 'Animations', share: '24%', width: 'w-[24%]', color: 'bg-cyan-500' },
-                { category: 'Components', share: '28%', width: 'w-[28%]', color: 'bg-pink-500' },
-                { category: 'Backgrounds', share: '10%', width: 'w-[10%]', color: 'bg-emerald-500' },
-              ].map((c, i) => (
-                <div key={i} className="space-y-1">
-                  <div className="flex justify-between text-zinc-300">
-                    <span>{c.category}</span>
-                    <span className="font-bold">{c.share}</span>
+            <div className="space-y-3 text-xs">
+              {categoryShares.length > 0 ? (
+                categoryShares.map((c, i) => (
+                  <div key={i} className="space-y-1">
+                    <div className="flex justify-between text-zinc-300">
+                      <span className="font-medium">{c.category} ({c.count})</span>
+                      <span className="font-bold text-violet-400">{c.sharePct}%</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${colors[i % colors.length]}`}
+                        style={{ width: `${c.sharePct}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full ${c.color} ${c.width}`} />
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <div className="text-xs text-zinc-500 py-4 text-center">Loading catalog shares...</div>
+              )}
             </div>
           </div>
 
