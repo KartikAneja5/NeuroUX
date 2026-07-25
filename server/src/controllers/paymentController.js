@@ -93,6 +93,7 @@ exports.verifyRazorpayPayment = asyncHandler(async (req, res) => {
       } catch (interactionErr) {
         console.error("Failed to log purchase interaction:", interactionErr.message);
       }
+    }
 
     // Generate PDF Invoice & Dispatch Email with Attachment
     try {
