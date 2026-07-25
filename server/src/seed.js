@@ -52,7 +52,7 @@ function generateUniqueThumbnail(name, category, price, index) {
     <rect x="90" y="240" width="180" height="46" rx="12" fill="url(#b${index})" />
     <text x="180" y="269" fill="rgb(255, 255, 255)" font-family="sans-serif" font-size="13" font-weight="bold" text-anchor="middle">${safeName}</text>
     
-    <text x="500" y="420" fill="rgba(255,255,255,0.4)" font-family="monospace" font-size="13" font-weight="bold" text-anchor="end">Rs. ${price}</text>
+    <text x="500" y="420" fill="rgba(255,255,255,0.4)" font-family="monospace" font-size="13" font-weight="bold" text-anchor="end">₹${price}</text>
   </svg>`;
 
   return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;

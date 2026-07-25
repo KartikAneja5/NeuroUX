@@ -33,7 +33,7 @@ export default function AdminAnalyticsPage() {
   }, []);
 
   const stats = [
-    { label: 'Total Revenue', value: `$${revenue.toFixed(2)}`, change: 'Live DB', icon: <FiDollarSign size={18} /> },
+    { label: 'Total Revenue', value: `₹${revenue.toFixed(2)}`, change: 'Live DB', icon: <FiDollarSign size={18} /> },
     { label: 'Completed Orders', value: salesCount, change: 'Live DB', icon: <FiShoppingBag size={18} /> },
     { label: 'Registered Customers', value: userCount, change: 'Live DB', icon: <FiUsers size={18} /> },
     { label: 'Catalog Assets', value: productCount, change: 'Live DB', icon: <FiPackage size={18} /> },
@@ -110,7 +110,7 @@ export default function AdminAnalyticsPage() {
                   { day: 'Thu', amount: 0 }, { day: 'Fri', amount: 0 }, { day: 'Sat', amount: 0 }, { day: 'Sun', amount: 0 }
                 ]).map((item, idx) => (
                   <div key={idx} className="flex flex-col items-center">
-                    <span className="text-[9px] text-violet-300 font-bold mb-0.5">${item.amount}</span>
+                    <span className="text-[9px] text-violet-300 font-bold mb-0.5">₹{item.amount}</span>
                     <span className="text-zinc-500 uppercase">{item.day}</span>
                   </div>
                 ))}

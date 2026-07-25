@@ -9,7 +9,7 @@ const plans = [
     period: 'pay per component',
     desc: 'Perfect for creators who only need specific UI elements for one-off projects.',
     features: [
-      'Buy any component starting at $9',
+      'Buy any component starting at ₹499',
       'Lifetime updates for purchased items',
       'Standard Commercial License',
       'Tailwind CSS configurations included',
@@ -22,7 +22,7 @@ const plans = [
   },
   {
     name: 'Developer Pro Pass',
-    price: '$15',
+    price: '₹999',
     period: 'per month',
     desc: 'Unleash full power. Direct access to all text animations, backgrounds, and premium components.',
     features: [
@@ -40,7 +40,7 @@ const plans = [
   },
   {
     name: 'Team License',
-    price: '$39',
+    price: '₹2,499',
     period: 'per month',
     desc: 'For design agencies and product teams building collaborative websites and apps.',
     features: [
