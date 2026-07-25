@@ -22,8 +22,9 @@ def get_hybrid_recommendations(product_id, top_n=6, user_id=None, session_token=
     if product_id not in product_ids:
         return []
 
-    # Map product ID -> category
+    # Map product ID -> category & rating
     prod_cat_map = dict(zip(df_prod['_id'], df_prod['category']))
+    prod_rating_map = dict(zip(df_prod['_id'], df_prod['averageRating'])) if 'averageRating' in df_prod.columns else {}
 
     # Compute User Category Affinity if identity exists
     user_affinity_map = {}
@@ -62,6 +63,15 @@ def get_hybrid_recommendations(product_id, top_n=6, user_id=None, session_token=
         if prod_cat and prod_cat in user_affinity_map:
             affinity_bonus = 0.25 * user_affinity_map[prod_cat]
             score += affinity_bonus
+
+        # Apply Product Rating Multiplier: Adjusted Score = Hybrid Score * (0.8 + 0.2 * (Rating / 5.0))
+        raw_rating = prod_rating_map.get(pid, 5.0)
+        try:
+            avg_rating = float(raw_rating) if raw_rating is not None else 5.0
+        except (ValueError, TypeError):
+            avg_rating = 5.0
+        rating_multiplier = 0.8 + 0.2 * (avg_rating / 5.0)
+        score = score * rating_multiplier
 
         hybrid_list.append({
             "productId": pid,

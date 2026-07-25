@@ -291,8 +291,12 @@ export default function ProductCard({ product, source = 'browse', onAddToCartCli
         <div className="flex items-center justify-between pt-3 border-t border-white/6 mt-auto">
           <div className="flex items-center gap-1 text-xs text-amber-400 font-bold font-mono">
             <FiStar size={12} className="fill-current text-amber-400" />
-            <span className="text-white">{product?.rating || 5.0}</span>
-            <span className="text-zinc-500 font-normal">({product?.reviews || 1})</span>
+            <span className="text-white">
+              {Number(product?.averageRating || product?.rating || 5.0).toFixed(1)}
+            </span>
+            <span className="text-zinc-500 font-normal">
+              ({product?.numReviews ?? product?.reviews ?? 0})
+            </span>
           </div>
           <span className="text-[10px] bg-white/5 border border-white/10 text-zinc-300 px-2 py-0.5 rounded font-mono uppercase font-bold tracking-wider">
             {product?.framework || 'REACT'}

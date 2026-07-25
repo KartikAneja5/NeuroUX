@@ -11,6 +11,8 @@ const productSchema = new mongoose.Schema({
   codeFileUrl: { type: String },
   code: { type: String },
   framework: { type: String, default: 'react' },
+  averageRating: { type: Number, default: 5.0 },
+  numReviews: { type: Number, default: 0 },
   isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 

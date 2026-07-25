@@ -10,6 +10,8 @@ import { getProductById } from '../../api/productApi';
 import { getRecommendations } from '../../api/recommendationApi';
 import useTrackInteraction from '../../hooks/useTrackInteraction';
 
+import ProductReviewsSection from '../../components/product/ProductReviewsSection';
+
 export default function ProductDetailsPage() {
   const { id } = useParams();
   const location = useLocation();
@@ -189,6 +191,20 @@ export default function ProductDetailsPage() {
         <div className="w-full lg:w-[58%] mt-12">
           <ProductTabs key={purchaseTrigger} product={product} />
         </div>
+
+        {/* Interactive Reviews & Rating Section */}
+        <ProductReviewsSection
+          productId={product.id}
+          onReviewSubmitted={(data) => {
+            setProduct(prev => ({
+              ...prev,
+              averageRating: data.averageRating,
+              numReviews: data.numReviews,
+              rating: data.averageRating,
+              reviews: data.numReviews
+            }));
+          }}
+        />
       </div>
 
       {/* You Might Also Like */}
