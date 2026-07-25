@@ -5,14 +5,26 @@ require('dotenv').config();
 
 const RECOMMENDER_URL = process.env.RECOMMENDER_URL || 'http://localhost:8000';
 
+const jwt = require('jsonwebtoken');
+
 exports.getRecommendations = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const userId = req.query.user_id || '';
+  let userId = req.query.user_id || '';
   const limit = parseInt(req.query.limit || 6);
+
+  if (!userId && req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+    try {
+      const token = req.headers.authorization.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret_here');
+      userId = decoded.id;
+    } catch (err) {}
+  }
+
+  const sessionToken = req.query.session_token || '';
 
   try {
     const response = await axios.get(`${RECOMMENDER_URL}/api/recommend/${id}/`, {
-      params: { user_id: userId, top_n: limit }
+      params: { user_id: userId, session_token: sessionToken, top_n: limit }
     });
 
     const recommendations = response.data.recommendations || [];
@@ -43,8 +55,16 @@ exports.getRecommendations = asyncHandler(async (req, res) => {
 
 // Phase 3 Proxy: Homepage Personalized Layout (Layer 1)
 exports.getHomepageLayout = asyncHandler(async (req, res) => {
-  const userId = req.query.user_id || '';
+  let userId = req.query.user_id || '';
   const sessionToken = req.query.session_token || '';
+
+  if (!userId && req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+    try {
+      const token = req.headers.authorization.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret_here');
+      userId = decoded.id;
+    } catch (err) {}
+  }
 
   try {
     const endpoint = userId ? `${RECOMMENDER_URL}/api/homepage-layout/${userId}/` : `${RECOMMENDER_URL}/api/homepage-layout/`;

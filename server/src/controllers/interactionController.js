@@ -7,7 +7,7 @@ require('dotenv').config();
 
 // Discrete interaction logger (view=1, cart=3, purchase=5) - Untouched & fully intact
 exports.logInteraction = asyncHandler(async (req, res) => {
-  const { productId, type, source } = req.body;
+  const { productId, type, source, sessionToken } = req.body;
 
   if (!productId || !type) {
     return res.status(400).json({ message: "Product ID and interaction type are required." });
@@ -45,6 +45,7 @@ exports.logInteraction = asyncHandler(async (req, res) => {
 
   const interaction = new Interaction({
     userId,
+    sessionToken: sessionToken || '',
     productId,
     type,
     weight,

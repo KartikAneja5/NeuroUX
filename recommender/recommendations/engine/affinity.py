@@ -2,10 +2,11 @@ import pandas as pd
 from ..db.data_access import get_products, get_interactions, get_behavioral_signals
 
 DEFAULT_CATEGORIES = [
-    {"category": "Basic UI Components", "score": 0.95},
-    {"category": "Navigation Components", "score": 0.85},
-    {"category": "Data Display Components", "score": 0.75},
-    {"category": "Forms & Controls", "score": 0.65}
+    {"category": "cards", "score": 0.95},
+    {"category": "forms", "score": 0.85},
+    {"category": "navbars", "score": 0.75},
+    {"category": "buttons", "score": 0.65},
+    {"category": "modals", "score": 0.55}
 ]
 
 def calculate_user_affinity(user_id=None, session_token=None):
@@ -20,14 +21,20 @@ def calculate_user_affinity(user_id=None, session_token=None):
 
     # 1. Process Discrete Interactions
     interactions_df = get_interactions()
-    if not interactions_df.empty and 'userId' in interactions_df.columns and user_id:
-        user_interactions = interactions_df[interactions_df['userId'] == str(user_id)]
-        for _, row in user_interactions.iterrows():
-            pid = row.get('productId')
-            weight = row.get('weight', 1)
-            cat = prod_cat_map.get(pid)
-            if cat:
-                category_scores[cat] = category_scores.get(cat, 0.0) + float(weight)
+    if not interactions_df.empty:
+        user_interactions = pd.DataFrame()
+        if user_id and 'userId' in interactions_df.columns:
+            user_interactions = interactions_df[interactions_df['userId'] == str(user_id)]
+        elif session_token and 'sessionToken' in interactions_df.columns:
+            user_interactions = interactions_df[interactions_df['sessionToken'] == str(session_token)]
+
+        if not user_interactions.empty:
+            for _, row in user_interactions.iterrows():
+                pid = row.get('productId')
+                weight = row.get('weight', 1)
+                cat = prod_cat_map.get(pid)
+                if cat:
+                    category_scores[cat] = category_scores.get(cat, 0.0) + float(weight)
 
     # 2. Process Continuous Behavioral Signals
     signals = get_behavioral_signals(user_id=user_id, session_token=session_token)

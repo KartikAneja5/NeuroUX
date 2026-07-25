@@ -10,8 +10,9 @@ import axiosInstance from '../api/axiosInstance';
 export default function useTrackInteraction(productId, type, source = 'browse') {
   useEffect(() => {
     if (productId && type) {
+      const sessionToken = localStorage.getItem('neuroux_session_token') || '';
       axiosInstance
-        .post('/interactions', { productId, type, source })
+        .post('/interactions', { productId, type, source, sessionToken })
         .catch(err => console.error('Interaction tracking failed:', err));
     }
   }, [productId, type, source]);

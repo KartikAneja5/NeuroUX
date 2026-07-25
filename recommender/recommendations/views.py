@@ -10,9 +10,11 @@ from .db.mongo_client import MongoClientSingleton
 class HybridRecommendationView(APIView):
     def get(self, request, product_id):
         top_n = int(request.query_params.get('top_n', 6))
+        user_id = request.query_params.get('user_id', None)
+        session_token = request.query_params.get('session_token', None)
         
         try:
-            recommendations = get_hybrid_recommendations(product_id, top_n)
+            recommendations = get_hybrid_recommendations(product_id, top_n, user_id=user_id, session_token=session_token)
             
             data = {
                 "productId": product_id,

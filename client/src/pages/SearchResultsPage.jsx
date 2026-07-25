@@ -6,6 +6,7 @@ import ProductCard from '../components/product/ProductCard';
 import ProductFilterBar from '../components/product/ProductFilterBar';
 import { ProductGridSkeleton } from '../components/common/SkeletonLoader';
 import { getProducts } from '../api/productApi';
+import axiosInstance from '../api/axiosInstance';
 import { dummyCategories } from '../data/dummyData';
 
 export default function SearchResultsPage() {
@@ -50,8 +51,29 @@ export default function SearchResultsPage() {
     const fetchCatalog = async () => {
       setLoading(true);
       try {
-        const response = await getProducts({ limit: 100 });
-        const list = response.data.products || [];
+        const sessionToken = localStorage.getItem('neuroux_session_token') || '';
+        const [prodRes, layoutRes] = await Promise.all([
+          getProducts({ limit: 100 }),
+          axiosInstance.get('/products/homepage-layout', { params: { session_token: sessionToken } }).catch(() => null)
+        ]);
+
+        const list = prodRes.data.products || [];
+        const categoryOrder = layoutRes?.data?.categoryOrder || [];
+
+        // Sort catalog products according to user's personalized category affinity
+        if (categoryOrder.length > 0) {
+          const catRankMap = {};
+          categoryOrder.forEach((cat, idx) => {
+            catRankMap[cat.toLowerCase()] = idx;
+          });
+
+          list.sort((a, b) => {
+            const rankA = catRankMap[(a.category || '').toLowerCase()] ?? 99;
+            const rankB = catRankMap[(b.category || '').toLowerCase()] ?? 99;
+            return rankA - rankB;
+          });
+        }
+
         setProducts(list.map(p => ({ ...p, id: p._id })));
       } catch (err) {
         console.error("Failed to load catalog for search:", err);

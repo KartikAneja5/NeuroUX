@@ -12,7 +12,7 @@ def generate_homepage_layout(user_id=None, session_token=None):
     if top_categories:
         primary_category = top_categories[0]['category']
     else:
-        primary_category = "Basic UI Components"
+        primary_category = "forms"
 
     # Order remaining categories according to affinity
     affinity_cat_names = [c['category'] for c in top_categories]
