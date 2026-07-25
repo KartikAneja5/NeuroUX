@@ -8,7 +8,11 @@ const asyncHandler = require('../utils/asyncHandler');
 exports.addOrUpdateReview = asyncHandler(async (req, res) => {
   const productId = req.params.id;
   const { rating, comment } = req.body;
-  const userId = req.user._id;
+  const userId = req.user?.id || req.user?._id;
+
+  if (!userId) {
+    return res.status(401).json({ message: "Authentication required to submit a review." });
+  }
 
   if (!rating || rating < 1 || rating > 5) {
     return res.status(400).json({ message: 'Rating must be a number between 1 and 5.' });
