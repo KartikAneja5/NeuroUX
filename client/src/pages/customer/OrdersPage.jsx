@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiCheckCircle, FiInbox, FiClock } from 'react-icons/fi';
-import { getMyOrders } from '../../api/orderApi';
+import { FiCheckCircle, FiInbox, FiClock, FiFileText, FiDownload } from 'react-icons/fi';
+import { getMyOrders, downloadOrderInvoice } from '../../api/orderApi';
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [downloadingId, setDownloadingId] = useState(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -21,6 +22,26 @@ export default function OrdersPage() {
     };
     fetchOrders();
   }, []);
+
+  const handleDownloadInvoice = async (orderId) => {
+    try {
+      setDownloadingId(orderId);
+      const res = await downloadOrderInvoice(orderId);
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `NeuroUX_Invoice_${orderId.slice(-8).toUpperCase()}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error("Failed to download invoice:", err);
+      alert("Failed to download PDF invoice. Please try again.");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -73,8 +94,10 @@ export default function OrdersPage() {
                       <FiClock size={12} /> Placed on {new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                     </p>
                   </div>
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold uppercase">
-                    <FiCheckCircle size={13} /> {order.status}
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold uppercase">
+                      <FiCheckCircle size={13} /> {order.status}
+                    </div>
                   </div>
                 </div>
 
@@ -92,10 +115,19 @@ export default function OrdersPage() {
                   ))}
                 </div>
 
-                {/* Total */}
-                <div className="border-t border-white/5 pt-4 mt-4 flex justify-between items-baseline">
-                  <span className="text-xs font-semibold text-[#8b7fb5] uppercase tracking-wider">Total Invoiced</span>
-                  <span className="text-lg font-extrabold text-white">₹{order.totalAmount}</span>
+                {/* Total & Download Invoice */}
+                <div className="border-t border-white/5 pt-4 mt-4 flex justify-between items-center">
+                  <button
+                    onClick={() => handleDownloadInvoice(order._id)}
+                    disabled={downloadingId === order._id}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-violet-600/10 hover:bg-violet-600/20 border border-violet-500/30 text-violet-300 text-xs font-medium rounded-xl transition cursor-pointer disabled:opacity-50"
+                  >
+                    <FiDownload size={14} /> {downloadingId === order._id ? 'Generating PDF...' : 'Download PDF Invoice'}
+                  </button>
+                  <div className="text-right">
+                    <span className="text-[10px] font-semibold text-[#8b7fb5] uppercase tracking-wider block">Total Paid</span>
+                    <span className="text-lg font-extrabold text-white">₹{order.totalAmount}</span>
+                  </div>
                 </div>
               </motion.div>
             ))}

@@ -7,4 +7,5 @@ router.use(authMiddleware);
 
 router.post('/checkout', orderController.checkout);
 router.get('/mine', orderController.getMyOrders);
+router.get('/:id/invoice', orderController.getOrderInvoice);
 module.exports = router;

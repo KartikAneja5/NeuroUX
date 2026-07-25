@@ -64,7 +64,28 @@ exports.checkout = asyncHandler(async (req, res) => {
   res.status(201).json(order);
 });
 
+const User = require('../models/User');
+const { generateInvoicePDF } = require('../utils/pdfInvoiceGenerator');
+
 exports.getMyOrders = asyncHandler(async (req, res) => {
   const orders = await Order.find({ userId: req.user.id }).sort({ createdAt: -1 });
   res.json(orders);
+});
+
+exports.getOrderInvoice = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.id || req.user._id;
+
+  const order = await Order.findOne({ _id: id, userId });
+  if (!order) {
+    return res.status(404).json({ message: "Order not found or unauthorized access." });
+  }
+
+  const user = await User.findById(userId);
+  const pdfBuffer = await generateInvoicePDF(order, user || {});
+
+  const shortId = order._id.toString().slice(-8).toUpperCase();
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename=NeuroUX_Invoice_${shortId}.pdf`);
+  res.send(pdfBuffer);
 });

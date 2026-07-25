@@ -85,3 +85,50 @@ exports.sendResetPasswordEmail = async (email, token) => {
     return { messageId: 'mock-id' };
   }
 };
+
+exports.sendInvoiceEmail = async (email, order, pdfBuffer) => {
+  const orderId = order._id ? order._id.toString() : 'N/A';
+  const shortId = orderId.slice(-8).toUpperCase();
+  
+  const mailOptions = {
+    from: `"NeuroUX Support" <${process.env.EMAIL_USER || 'studyemailjee@gmail.com'}>`,
+    to: email,
+    subject: `Invoice & Order Confirmation #INV-${shortId} - NeuroUX Marketplace`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 24px; border: 1px solid #1e1b38; border-radius: 12px; background-color: #080712; color: #ffffff;">
+        <h2 style="color: #a855f7; text-align: center; margin-bottom: 8px;">Order Confirmed!</h2>
+        <p style="color: #8b7fb5; text-align: center; font-size: 13px; margin-top: 0;">Invoice #INV-${shortId}</p>
+        <hr style="border: 0; border-top: 1px solid #1e1b38; margin: 20px 0;">
+        <p style="font-size: 14px; color: #cbd5e1; line-height: 1.6;">
+          Thank you for your purchase! Your payment has cleared successfully, and your official PDF invoice is attached to this email.
+        </p>
+        <div style="background-color: #0c0b1e; padding: 16px; border-radius: 8px; border: 1px solid #1e1b38; margin: 20px 0; font-size: 13px; color: #cbd5e1;">
+          <p style="margin: 4px 0;"><strong>Order ID:</strong> ${orderId}</p>
+          <p style="margin: 4px 0;"><strong>Total Paid:</strong> INR ${order.totalAmount || 0}</p>
+          <p style="margin: 4px 0;"><strong>Payment Method:</strong> Razorpay (${order.paymentId || 'Completed'})</p>
+        </div>
+        <div style="text-align: center; margin: 28px 0;">
+          <a href="${CLIENT_URL}/customer/orders" style="background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">View Orders & Source Code</a>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #1e1b38; margin: 20px 0;">
+        <p style="color: #64748b; font-size: 11px; text-align: center;">NeuroUX Marketplace, Inc. &copy; 2026</p>
+      </div>
+    `,
+    attachments: [
+      {
+        filename: `NeuroUX_Invoice_${shortId}.pdf`,
+        content: pdfBuffer,
+        contentType: 'application/pdf'
+      }
+    ]
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`Invoice email with PDF sent to ${email}: ${info.messageId}`);
+    return info;
+  } catch (error) {
+    console.error('Error sending invoice email:', error.message);
+    return { messageId: 'mock-id' };
+  }
+};

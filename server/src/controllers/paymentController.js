@@ -2,8 +2,11 @@ const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
+const User = require('../models/User');
 const Interaction = require('../models/Interaction');
 const asyncHandler = require('../utils/asyncHandler');
+const { generateInvoicePDF } = require('../utils/pdfInvoiceGenerator');
+const { sendInvoiceEmail } = require('../services/emailService');
 require('dotenv').config();
 
 const razorpay = new Razorpay({
@@ -90,6 +93,18 @@ exports.verifyRazorpayPayment = asyncHandler(async (req, res) => {
       } catch (interactionErr) {
         console.error("Failed to log purchase interaction:", interactionErr.message);
       }
+
+    // Generate PDF Invoice & Dispatch Email with Attachment
+    try {
+      const user = await User.findById(userId);
+      if (user && user.email) {
+        const pdfBuffer = await generateInvoicePDF(order, user);
+        sendInvoiceEmail(user.email, order, pdfBuffer).catch(err => {
+          console.error("Async invoice email dispatch error:", err.message);
+        });
+      }
+    } catch (invoiceErr) {
+      console.error("PDF Invoice generation error:", invoiceErr.message);
     }
   }
 
