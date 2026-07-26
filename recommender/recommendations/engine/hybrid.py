@@ -1,7 +1,7 @@
 from .content_based import get_content_scores
 from .collaborative import get_collaborative_scores
 from .affinity import calculate_user_affinity
-from ..db.data_access import get_products
+from ..db.data_access import get_products, get_user_purchased_product_ids
 from .cache import recommendation_cache
 
 def get_hybrid_recommendations(product_id, top_n=6, user_id=None, session_token=None):
@@ -22,6 +22,10 @@ def get_hybrid_recommendations(product_id, top_n=6, user_id=None, session_token=
     if product_id not in product_ids:
         return []
 
+    # Fetch user's purchased product IDs to exclude owned items and seed recommendations
+    purchased_ids = get_user_purchased_product_ids(user_id=user_id, session_token=session_token)
+    purchased_categories = set(df_prod[df_prod['_id'].isin(purchased_ids)]['category'].tolist()) if purchased_ids else set()
+
     # Map product ID -> category & rating
     prod_cat_map = dict(zip(df_prod['_id'], df_prod['category']))
     prod_rating_map = dict(zip(df_prod['_id'], df_prod['averageRating'])) if 'averageRating' in df_prod.columns else {}
@@ -41,8 +45,8 @@ def get_hybrid_recommendations(product_id, top_n=6, user_id=None, session_token=
     hybrid_list = []
     
     for pid in product_ids:
-        # Exclude the current product from recommendations
-        if pid == product_id:
+        # Exclude current product AND any products the user ALREADY purchased
+        if pid == product_id or pid in purchased_ids:
             continue
             
         # If a product has no content or collaborative scores, skip it
@@ -63,6 +67,10 @@ def get_hybrid_recommendations(product_id, top_n=6, user_id=None, session_token=
         if prod_cat and prod_cat in user_affinity_map:
             affinity_bonus = 0.25 * user_affinity_map[prod_cat]
             score += affinity_bonus
+
+        # Purchased Seed Boost: Boost unowned items in categories matching user's past purchases
+        if prod_cat and prod_cat in purchased_categories:
+            score += 0.35
 
         # Apply Product Rating Multiplier: Adjusted Score = Hybrid Score * (0.8 + 0.2 * (Rating / 5.0))
         raw_rating = prod_rating_map.get(pid, 5.0)

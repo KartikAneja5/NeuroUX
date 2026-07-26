@@ -42,3 +42,44 @@ def get_behavioral_signals(user_id=None, session_token=None):
 
     signals = list(db.behavioralsignals.find(query))
     return signals
+
+def get_user_purchased_product_ids(user_id=None, session_token=None):
+    if not user_id and not session_token:
+        return set()
+
+    db = MongoClientSingleton.get_db()
+    purchased_ids = set()
+
+    # 1. Query orders collection
+    order_query = {}
+    if user_id:
+        try:
+            order_query['$or'] = [{'userId': ObjectId(user_id)}, {'userId': str(user_id)}]
+        except Exception:
+            order_query['userId'] = str(user_id)
+
+    if order_query:
+        orders = list(db.orders.find(order_query, {"items": 1}))
+        for order in orders:
+            for item in order.get("items", []):
+                p_id = item.get("productId") or item.get("id")
+                if p_id:
+                    purchased_ids.add(str(p_id))
+
+    # 2. Query interactions collection for type=='purchase'
+    int_query = {'type': 'purchase'}
+    if user_id:
+        try:
+            int_query['$or'] = [{'userId': ObjectId(user_id)}, {'userId': str(user_id)}]
+        except Exception:
+            int_query['userId'] = str(user_id)
+    elif session_token:
+        int_query['sessionToken'] = str(session_token)
+
+    interactions = list(db.interactions.find(int_query, {"productId": 1}))
+    for int_doc in interactions:
+        p_id = int_doc.get("productId")
+        if p_id:
+            purchased_ids.add(str(p_id))
+
+    return purchased_ids
