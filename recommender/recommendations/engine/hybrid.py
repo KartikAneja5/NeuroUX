@@ -82,9 +82,10 @@ def get_hybrid_recommendations(product_id, top_n=6, user_id=None, session_token=
             score += 0.35
 
         # 1. Feature 1: Cross-Category Complementary Boost
+        prod_cat_clean = str(prod_cat or "").lower().strip()
         is_complementary = False
-        if prod_cat and prod_cat in complementary_cats:
-            co_bonus = 0.30 * complementary_cats[prod_cat]
+        if prod_cat_clean and prod_cat_clean in complementary_cats:
+            co_bonus = 0.30 * complementary_cats[prod_cat_clean]
             score += co_bonus
             is_complementary = True
 

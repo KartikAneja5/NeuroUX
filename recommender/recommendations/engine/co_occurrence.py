@@ -58,12 +58,14 @@ def get_complementary_categories(target_category):
         "modals": ["buttons", "forms", "cards"]
     }
 
+    target_clean = str(target_category or "").lower().strip()
+
     matrix = build_category_co_occurrence_matrix()
-    if target_category in matrix and matrix[target_category]:
-        # Return categories sorted by co-occurrence probability
-        sorted_co = sorted(matrix[target_category].items(), key=lambda x: x[1], reverse=True)
+    matrix_clean = {str(k).lower().strip(): {str(k2).lower().strip(): v2 for k2, v2 in v.items()} for k, v in matrix.items()}
+
+    if target_clean in matrix_clean and matrix_clean[target_clean]:
+        sorted_co = sorted(matrix_clean[target_clean].items(), key=lambda x: x[1], reverse=True)
         return {cat: score for cat, score in sorted_co}
 
-    # Fallback to domain rules
-    fallbacks = DEFAULT_COMPLEMENTARY.get(target_category, ["cards", "buttons"])
-    return {cat: 0.75 for cat in fallbacks}
+    fallbacks = DEFAULT_COMPLEMENTARY.get(target_clean, ["cards", "buttons"])
+    return {cat.lower(): 0.75 for cat in fallbacks}
