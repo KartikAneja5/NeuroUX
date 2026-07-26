@@ -3,6 +3,7 @@ from rest_framework import serializers
 class RecommendationItemSerializer(serializers.Serializer):
     productId = serializers.CharField()
     score = serializers.FloatField()
+    reason = serializers.CharField(required=False, allow_blank=True, default="")
 
 class RecommendationResponseSerializer(serializers.Serializer):
     productId = serializers.CharField()

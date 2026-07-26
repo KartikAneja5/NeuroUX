@@ -33,7 +33,14 @@ exports.getRecommendations = asyncHandler(async (req, res) => {
     const products = await Product.find({ _id: { $in: recommendedIds }, isActive: true });
 
     const sortedProducts = recommendedIds
-      .map(recId => products.find(p => p._id.toString() === recId))
+      .map(recId => {
+        const prod = products.find(p => p._id.toString() === recId);
+        if (!prod) return null;
+        const recObj = recommendations.find(r => r.productId === recId);
+        const prodObj = prod.toObject ? prod.toObject() : prod;
+        prodObj.recommendationReason = recObj?.reason || "Top-rated component match";
+        return prodObj;
+      })
       .filter(Boolean);
 
     res.json(sortedProducts);

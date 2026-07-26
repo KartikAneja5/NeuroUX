@@ -83,3 +83,20 @@ def get_user_purchased_product_ids(user_id=None, session_token=None):
             purchased_ids.add(str(p_id))
 
     return purchased_ids
+
+def get_user_price_preference(user_id=None, session_token=None):
+    DEFAULT_PREFERENCE = 499.0
+    if not user_id and not session_token:
+        return DEFAULT_PREFERENCE
+
+    products_df = get_products()
+    if products_df.empty:
+        return DEFAULT_PREFERENCE
+
+    purchased_ids = get_user_purchased_product_ids(user_id=user_id, session_token=session_token)
+    if purchased_ids:
+        user_prods = products_df[products_df['_id'].isin(purchased_ids)]
+        if not user_prods.empty and 'price' in user_prods.columns:
+            return float(user_prods['price'].mean())
+
+    return DEFAULT_PREFERENCE

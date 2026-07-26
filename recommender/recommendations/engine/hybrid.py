@@ -1,7 +1,8 @@
 from .content_based import get_content_scores
 from .collaborative import get_collaborative_scores
 from .affinity import calculate_user_affinity
-from ..db.data_access import get_products, get_user_purchased_product_ids
+from .co_occurrence import get_complementary_categories
+from ..db.data_access import get_products, get_user_purchased_product_ids, get_user_price_preference
 from .cache import recommendation_cache
 
 def get_hybrid_recommendations(product_id, top_n=6, user_id=None, session_token=None):
@@ -26,9 +27,17 @@ def get_hybrid_recommendations(product_id, top_n=6, user_id=None, session_token=
     purchased_ids = get_user_purchased_product_ids(user_id=user_id, session_token=session_token)
     purchased_categories = set(df_prod[df_prod['_id'].isin(purchased_ids)]['category'].tolist()) if purchased_ids else set()
 
-    # Map product ID -> category & rating
+    # User price preference
+    target_price_pref = get_user_price_preference(user_id=user_id, session_token=session_token)
+
+    # Map product ID -> category, rating, price
     prod_cat_map = dict(zip(df_prod['_id'], df_prod['category']))
+    prod_price_map = dict(zip(df_prod['_id'], df_prod['price'])) if 'price' in df_prod.columns else {}
     prod_rating_map = dict(zip(df_prod['_id'], df_prod['averageRating'])) if 'averageRating' in df_prod.columns else {}
+
+    # Target product category & complementary categories
+    target_cat = prod_cat_map.get(product_id, "")
+    complementary_cats = get_complementary_categories(target_cat)
 
     # Compute User Category Affinity if identity exists
     user_affinity_map = {}
@@ -72,7 +81,21 @@ def get_hybrid_recommendations(product_id, top_n=6, user_id=None, session_token=
         if prod_cat and prod_cat in purchased_categories:
             score += 0.35
 
-        # Apply Product Rating Multiplier: Adjusted Score = Hybrid Score * (0.8 + 0.2 * (Rating / 5.0))
+        # 1. Feature 1: Cross-Category Complementary Boost
+        is_complementary = False
+        if prod_cat and prod_cat in complementary_cats:
+            co_bonus = 0.30 * complementary_cats[prod_cat]
+            score += co_bonus
+            is_complementary = True
+
+        # 2. Feature 2: Price-Band Sensitivity Alignment
+        prod_price = float(prod_price_map.get(pid, 499.0))
+        price_diff = abs(prod_price - target_price_pref)
+        max_p = max(prod_price, target_price_pref, 100.0)
+        price_alignment = max(0.8, 1.15 - (price_diff / max_p) * 0.35)
+        score *= price_alignment
+
+        # 3. Feature 3: Product Rating Multiplier
         raw_rating = prod_rating_map.get(pid, 5.0)
         try:
             avg_rating = float(raw_rating) if raw_rating is not None else 5.0
@@ -81,9 +104,22 @@ def get_hybrid_recommendations(product_id, top_n=6, user_id=None, session_token=
         rating_multiplier = 0.8 + 0.2 * (avg_rating / 5.0)
         score = score * rating_multiplier
 
+        # Generate Explainable AI Reason (XAI) Badge String
+        if is_complementary and target_cat:
+            reason = f"Frequently paired with {target_cat.capitalize()}"
+        elif c_score > 0.35:
+            reason = "Matches design style & tags"
+        elif prod_cat and prod_cat in user_affinity_map:
+            reason = "Picked for your design stack"
+        elif price_alignment > 1.0:
+            reason = "Fits your target budget"
+        else:
+            reason = "Top-rated component match"
+
         hybrid_list.append({
             "productId": pid,
-            "score": round(score, 4)
+            "score": round(score, 4),
+            "reason": reason
         })
         
     # Sort descending by score

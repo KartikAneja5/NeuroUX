@@ -250,6 +250,16 @@ export default function ProductCard({ product, source = 'browse', onAddToCartCli
             </span>
           </div>
 
+          {/* Explainable AI (XAI) Recommendation Badge */}
+          {product.recommendationReason && (
+            <div className="absolute bottom-2.5 left-2.5 z-30 pointer-events-none">
+              <span className="px-2 py-0.5 rounded-md bg-[#0c0a21]/90 backdrop-blur-md text-amber-300 border border-amber-500/40 text-[9px] font-mono font-bold tracking-tight shadow-glow-sm flex items-center gap-1">
+                <FiZap size={9} className="text-amber-400 animate-pulse" />
+                {product.recommendationReason}
+              </span>
+            </div>
+          )}
+
           {/* Wishlist Heart Icon Button */}
           <motion.button 
             whileHover={{ scale: 1.15 }}
