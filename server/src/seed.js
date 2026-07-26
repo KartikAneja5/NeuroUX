@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const dns = require('dns');
+try { dns.setServers(['8.8.8.8', '1.1.1.1']); } catch(e) {}
 const Product = require('./models/Product');
 const User = require('./models/User');
 const bcrypt = require('bcryptjs');
@@ -167,17 +169,17 @@ async function seedProducts(force = false) {
     await Product.insertMany(seededProducts);
     console.log(`Successfully seeded ${seededProducts.length} catalog products with valid XML-escaped Base64 thumbnails.`);
 
-    const adminPassword = await bcrypt.hash('Password123!', 10);
+    const adminPassword = await bcrypt.hash('Admin@123', 10);
     await User.findOneAndUpdate(
       { email: 'admin@neuroux.com' },
-      { name: 'NeuroUX System Admin', email: 'admin@neuroux.com', password: adminPassword, role: 'admin', isVerified: true },
+      { name: 'NeuroUX System Admin', email: 'admin@neuroux.com', passwordHash: adminPassword, role: 'admin', isVerified: true },
       { upsert: true, new: true }
     );
 
     const customerPassword = await bcrypt.hash('Password123!', 10);
     await User.findOneAndUpdate(
       { email: 'customer@neuroux.com' },
-      { name: 'Demo Customer Account', email: 'customer@neuroux.com', password: customerPassword, role: 'customer', isVerified: true },
+      { name: 'Demo Customer Account', email: 'customer@neuroux.com', passwordHash: customerPassword, role: 'customer', isVerified: true },
       { upsert: true, new: true }
     );
 
