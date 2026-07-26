@@ -50,8 +50,8 @@ def get_user_purchased_product_ids(user_id=None, session_token=None):
     db = MongoClientSingleton.get_db()
     purchased_ids = set()
 
-    # 1. Query orders collection
-    order_query = {}
+    # 1. Query orders collection for completed orders
+    order_query = {'status': 'completed'}
     if user_id:
         try:
             order_query['$or'] = [{'userId': ObjectId(user_id)}, {'userId': str(user_id)}]
