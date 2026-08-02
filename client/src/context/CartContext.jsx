@@ -43,19 +43,35 @@ export const CartProvider = ({ children }) => {
           setLoading(false);
         }
       } else {
-        const saved = localStorage.getItem('neuroux_cart');
-        setCart(saved ? JSON.parse(saved) : { items: [] });
+        // Logged-out state starts cleanly empty
+        setCart({ items: [] });
+        localStorage.removeItem('neuroux_cart');
       }
     };
     loadCart();
   }, [token]);
 
-  // Sync to local storage only if NOT logged in
+  // Listen for explicit logout event
+  useEffect(() => {
+    const handleLogout = () => {
+      setCart({ items: [] });
+      localStorage.removeItem('neuroux_cart');
+    };
+    window.addEventListener('userLogout', handleLogout);
+    return () => window.removeEventListener('userLogout', handleLogout);
+  }, []);
+
+  // Sync to local storage only if NOT logged in and cart has items
   useEffect(() => {
     if (!localStorage.getItem('token')) {
-      localStorage.setItem('neuroux_cart', JSON.stringify(cart));
+      if (cart.items && cart.items.length > 0) {
+        localStorage.setItem('neuroux_cart', JSON.stringify(cart));
+      } else {
+        localStorage.removeItem('neuroux_cart');
+      }
     }
   }, [cart]);
+
 
   const addToCart = async (product, source = 'browse') => {
     const prodId = product._id || product.id;

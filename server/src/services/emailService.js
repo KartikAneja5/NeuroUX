@@ -4,7 +4,40 @@ require('dotenv').config();
 
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 
+exports.sendWelcomeEmail = async (email, name) => {
+  const mailOptions = {
+    from: `"NeuroUX Support" <${process.env.EMAIL_USER || 'studyemailjee@gmail.com'}>`,
+    to: email,
+    subject: 'Welcome to NeuroUX Marketplace!',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 24px; border: 1px solid #1e1b38; border-radius: 12px; background-color: #080712; color: #ffffff;">
+        <h2 style="color: #a855f7; text-align: center; margin-bottom: 8px;">Welcome to NeuroUX, ${name || 'Developer'}!</h2>
+        <p style="color: #8b7fb5; text-align: center; font-size: 14px;">Your account is ready.</p>
+        <hr style="border: 0; border-top: 1px solid #1e1b38; margin: 20px 0;">
+        <p style="font-size: 14px; color: #cbd5e1; line-height: 1.6;">
+          Thank you for registering at NeuroUX Marketplace. You now have access to our library of 47+ pre-built premium UI/UX components, interactive live previews, and AI-driven recommendations.
+        </p>
+        <div style="text-align: center; margin: 28px 0;">
+          <a href="${CLIENT_URL}/marketplace" style="background-color: #7c3aed; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Explore Marketplace Catalog</a>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #1e1b38; margin: 20px 0;">
+        <p style="color: #64748b; font-size: 11px; text-align: center;">NeuroUX Marketplace, Inc. &copy; 2026</p>
+      </div>
+    `
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`Welcome email sent to ${email}: ${info.messageId}`);
+    return info;
+  } catch (error) {
+    console.error('Error sending welcome email:', error.message);
+    return { messageId: 'mock-id' };
+  }
+};
+
 exports.sendVerificationEmail = async (email, token) => {
+
   const verificationUrl = `${CLIENT_URL}/verify-email/${token}`;
   
   const mailOptions = {

@@ -58,7 +58,8 @@ export default function AppRoutes() {
       <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
       {/* Customer Routes (Protected) */}
-      <Route path="/customer/cart" element={<CartPage />} />
+      <Route path="/customer/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
+
       <Route path="/customer/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
       <Route path="/customer/dashboard" element={<ProtectedRoute><CustomerDashboardPage /></ProtectedRoute>} />
       <Route path="/customer/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />

@@ -29,21 +29,23 @@ exports.register = asyncHandler(async (req, res) => {
     email,
     passwordHash,
     role: role === 'admin' ? 'admin' : 'customer', // default to customer unless explicitly set to admin
-    isVerified: process.env.NODE_ENV === 'production' ? false : true,
+    isVerified: true,
     verificationToken
   });
 
   await user.save();
 
-  // Send verification email
+  // Send welcome email
   try {
-    await emailService.sendVerificationEmail(email, verificationToken);
+    if (emailService.sendWelcomeEmail) {
+      await emailService.sendWelcomeEmail(email, name);
+    }
   } catch (err) {
-    console.error("Email sending failed during registration:", err);
+    console.error("Welcome email sending failed during registration:", err);
   }
 
   res.status(201).json({
-    message: "Registration successful. Please check your email to verify your account."
+    message: "Registration successful! Welcome to NeuroUX Marketplace."
   });
 });
 
@@ -79,11 +81,8 @@ exports.login = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Invalid email or password." });
   }
 
-  if (!user.isVerified) {
-    return res.status(400).json({ message: "Please verify your email address before logging in." });
-  }
-
   const token = generateToken(user);
+
 
   res.json({
     token,

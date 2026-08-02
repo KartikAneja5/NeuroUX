@@ -67,13 +67,14 @@ export default function RegisterPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-emerald-400 mb-2">Check your email</h3>
+            <h3 className="text-lg font-semibold text-emerald-400 mb-2">Welcome to NeuroUX!</h3>
             <p className="text-slate-300 text-sm leading-relaxed mb-6">{success}</p>
             <Link to="/login" className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-semibold transition-colors duration-200">
-              Go to Login
+              Proceed to Login
             </Link>
           </div>
         ) : (
+
           <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
             <div>
               <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Full Name</label>

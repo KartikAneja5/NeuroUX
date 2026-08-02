@@ -31,9 +31,16 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
     localStorage.removeItem('user');
+    localStorage.removeItem('neuroux_cart');
+    localStorage.removeItem('neuroux_wishlist');
+    localStorage.removeItem('neuroux_recent_views');
+    localStorage.removeItem('neuroux_interactions');
+    localStorage.removeItem('neuroux_search_history');
     setToken(null);
     setUser(null);
+    window.dispatchEvent(new Event('userLogout'));
   };
+
 
   return (
     <AuthContext.Provider value={{ user, token, loading, loginAction, logoutAction }}>

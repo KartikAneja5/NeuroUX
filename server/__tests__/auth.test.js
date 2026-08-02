@@ -30,9 +30,11 @@ jest.mock('../src/models/User', () => {
 });
 
 jest.mock('../src/services/emailService', () => ({
+  sendWelcomeEmail: jest.fn().mockResolvedValue({ messageId: 'mock-id' }),
   sendVerificationEmail: jest.fn().mockResolvedValue({ messageId: 'mock-id' }),
   sendResetPasswordEmail: jest.fn().mockResolvedValue({ messageId: 'mock-id' }),
 }));
+
 
 jest.mock('bcryptjs', () => ({
   hash: jest.fn().mockResolvedValue('$2a$10$hashedpwdmock'),
@@ -121,17 +123,6 @@ describe('POST /api/auth/login', () => {
     expect(res.body.message).toMatch(/invalid email or password/i);
   });
 
-  it('should return 400 for unverified user', async () => {
-    User.findOne.mockResolvedValue({ ...mockUser, isVerified: false });
-    bcrypt.compare.mockResolvedValue(true);
-
-    const res = await request(app)
-      .post('/api/auth/login')
-      .send({ email: 'test@neuroux.com', password: 'Password123!' });
-
-    expect(res.statusCode).toBe(400);
-    expect(res.body.message).toMatch(/verify your email/i);
-  });
 
   it('should return 400 if user does not exist', async () => {
     User.findOne.mockResolvedValue(null);
