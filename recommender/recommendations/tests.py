@@ -147,3 +147,53 @@ class RecommendationEngineTestCase(TestCase):
         third_call = get_hybrid_recommendations("p1", top_n=2)
         self.assertEqual(third_call[0]['productId'], "p2")
 
+    def test_idor_unauthenticated_user_id_rejected(self):
+        """
+        Verify that requesting personalized recommendations with a user_id param
+        WITHOUT a valid JWT token returns 401 Unauthorized (prevents IDOR history leak).
+        """
+        url = reverse('hybrid-recommendations', kwargs={'product_id': 'p1'})
+        response = self.client.get(f"{url}?user_id=victim_user_123")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn("error", response.data)
+
+    def test_idor_mismatched_jwt_user_claim_forbidden(self):
+        """
+        Verify that passing a user_id query param that disagrees with the authenticated
+        JWT token claim returns 403 Forbidden.
+        """
+        import jwt
+        from django.conf import settings
+        
+        jwt_secret = getattr(settings, 'JWT_SECRET', 'neuroux_jwt_super_secret_key_2026')
+        token = jwt.encode({"id": "attacker_user_456"}, jwt_secret, algorithm="HS256")
+        
+        url = reverse('hybrid-recommendations', kwargs={'product_id': 'p1'})
+        response = self.client.get(
+            f"{url}?user_id=victim_user_123",
+            HTTP_AUTHORIZATION=f"Bearer {token}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn("error", response.data)
+
+    @patch('recommendations.views.get_hybrid_recommendations')
+    def test_valid_jwt_user_recommendation_success(self, mock_hybrid):
+        """
+        Verify that a valid JWT token matching the requested user returns 200 OK.
+        """
+        import jwt
+        from django.conf import settings
+        
+        mock_hybrid.return_value = [{"productId": "p2", "score": 0.9}]
+        jwt_secret = getattr(settings, 'JWT_SECRET', 'neuroux_jwt_super_secret_key_2026')
+        token = jwt.encode({"id": "valid_user_789"}, jwt_secret, algorithm="HS256")
+        
+        url = reverse('hybrid-recommendations', kwargs={'product_id': 'p1'})
+        response = self.client.get(
+            f"{url}?user_id=valid_user_789",
+            HTTP_AUTHORIZATION=f"Bearer {token}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['productId'], 'p1')
+
+

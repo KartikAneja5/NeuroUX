@@ -77,13 +77,19 @@ sequenceDiagram
 | :--- | :--- | :--- | :--- | :--- |
 | `POST` | `/api/interactions` | No | `{ productId, type: "view"|"cart_add"|"purchase", weight: 1.0 }` | `200 OK` `{ success: true }` |
 
----
-
 ## 2. Django Recommender API Service (`recommender/recommendations/`)
 
-| Method | Endpoint | Auth Required | Query Parameters | Response JSON Schema |
+### Authentication & IDOR Contract Rules
+- **Guest / Anonymous Requests**: If no `Authorization` JWT header and no `user_id` parameter are supplied, endpoints return cold-start guest recommendations or non-user guest session recommendations (`session_token`).
+- **Authenticated User Requests**: Passing a `user_id` query/URL parameter **MUST** be accompanied by a valid `Authorization: Bearer <token>` signed with `JWT_SECRET`. The claims in the JWT token are verified, and the token's `user_id` claim **MUST** match the requested `user_id`.
+- **Security Enforcement**:
+  - `401 Unauthorized`: Returned if an unauthenticated `user_id` is supplied without a valid JWT token, or if the JWT token is invalid/expired.
+  - `403 Forbidden`: Returned if the requested `user_id` parameter disagrees with the `id` claim in the verified JWT token (prevents user impersonation and purchase history leaks).
+
+| Method | Endpoint | Auth Required | Parameters / Headers | Response JSON Schema |
 | :--- | :--- | :--- | :--- | :--- |
-| `GET` | `/api/recommendations/<product_id>/` | Public Read-Only (Optional JWT) | `top_n`, `user_id`, `session_token` | `{ productId, recommendations: [{ productId, score, reason }] }` |
-| `GET` | `/api/affinity/` / `/api/affinity/<user_id>/` | Public Read-Only (Optional JWT) | `session_token` | `{ isColdStart, topCategories: [{ category, score }] }` |
-| `GET` | `/api/homepage-layout/` / `/api/homepage-layout/<user_id>/` | Public Read-Only (Optional JWT) | `session_token` | `{ heroProduct, carousels: [{ title, items }] }` |
+| `GET` | `/api/recommendations/<product_id>/` | Optional JWT (Required for `user_id`) | Query: `top_n`, `user_id`, `session_token`<br/>Header: `Authorization: Bearer <JWT>` | `{ productId, recommendations: [{ productId, score, reason }] }` |
+| `GET` | `/api/affinity/` / `/api/affinity/<user_id>/` | Optional JWT (Required for `user_id`) | Query: `session_token`<br/>Header: `Authorization: Bearer <JWT>` | `{ isColdStart, topCategories: [{ category, score }] }` |
+| `GET` | `/api/homepage-layout/` / `/api/homepage-layout/<user_id>/` | Optional JWT (Required for `user_id`) | Query: `session_token`<br/>Header: `Authorization: Bearer <JWT>` | `{ heroProduct, carousels: [{ title, items }] }` |
 | `GET` | `/api/site-insights/` | Public Read-Only | None | `{ generatedAt, insights: [...] }` |
+
