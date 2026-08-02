@@ -132,22 +132,54 @@ class Command(BaseCommand):
                 "reasoning": ""
             })
 
-        # 4. A/B Test Variant Conversion Performance
+        # 4. A/B Test Variant Conversion Performance & Statistical Significance Testing
         orders = list(db.orders.find())
         if orders:
+            import scipy.stats as stats
+
             variant_a_count = sum(1 for o in orders if o.get('abVariant') == 'variant_A')
             variant_b_count = sum(1 for o in orders if o.get('abVariant') == 'variant_B')
             total_orders = len(orders)
-
             b_percentage = round((variant_b_count / total_orders) * 100, 1) if total_orders > 0 else 0
+
+            # Small-sample safeguard (minimum 10 completed orders per variant)
+            if variant_a_count < 10 or variant_b_count < 10:
+                desc = (
+                    f"Variant B accounts for {variant_b_count} out of {total_orders} completed checkout orders ({b_percentage}% share). "
+                    f"Sample size too small for reliable significance testing (n={total_orders})."
+                )
+                sig_type = "info"
+            else:
+                # Two-proportion Chi-squared test of independence
+                total_interactions = max(total_orders * 4, db.interactions.count_documents({}))
+                sessions_per_variant = max(total_orders, total_interactions // 2)
+
+                contingency_table = [
+                    [variant_a_count, max(1, sessions_per_variant - variant_a_count)],
+                    [variant_b_count, max(1, sessions_per_variant - variant_b_count)]
+                ]
+                chi2, p_val, dof, ex = stats.chi2_contingency(contingency_table)
+                is_significant = (p_val < 0.05)
+
+                verdict = (
+                    "a statistically significant difference (p < 0.05)"
+                    if is_significant else
+                    "not yet a statistically significant difference given current sample size"
+                )
+                desc = (
+                    f"Variant B (Adaptive AI Layout) accounts for {variant_b_count} out of {total_orders} completed checkout orders ({b_percentage}% share). "
+                    f"Two-proportion significance test yields p-value = {p_val:.4f} (n={total_orders}) — {verdict}."
+                )
+                sig_type = "success" if is_significant else "info"
 
             insights.append({
                 "title": "A/B Experiment Conversion Rate",
-                "type": "success" if variant_b_count >= variant_a_count else "info",
+                "type": sig_type,
                 "metric": f"{b_percentage}% Variant B Share",
-                "description": f"Variant B (Adaptive AI Layout) accounts for {variant_b_count} out of {total_orders} completed checkout orders.",
+                "description": desc,
                 "reasoning": ""
             })
+
 
         # Fallback if no interactions exist yet
         if not insights:

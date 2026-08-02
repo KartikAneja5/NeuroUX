@@ -147,7 +147,8 @@ sequenceDiagram
 | **Recommendation Cache** | Process-level in-memory TTL cache (`SimpleTTLCache`) | Centralized distributed Redis instance (`redis-py` / `django-redis`) |
 | **Model Retraining** | On-demand script execution (`train_ltr.py`) with versioning & sanity promotion | Scheduled cron job / Celery Beat pipeline |
 | **Email Service** | Ethereal console output in development | Production SMTP via SendGrid, Mailgun, or AWS SES |
-| **A/B Testing** | 50/50 static traffic split | Statistical significance testing & automated champion model promotion |
+| **A/B Experiment Analytics** | 50/50 static traffic split with two-proportion Chi-squared significance testing (`scipy.stats`); flags results as inconclusive below minimum sample size threshold ($n < 20$). Demo dataset simulated for presentation. | Automated champion model promotion & multi-armed bandit traffic routing |
+
 
 
 
