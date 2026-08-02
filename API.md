@@ -80,12 +80,21 @@ sequenceDiagram
 
 ## 2. Django Recommender API Service (`recommender/recommendations/`)
 
+### Rate Limiting & Throttling Rules
+- **Express API Rate Limits**:
+  - `authLimiter`: 10 requests per 15 minutes per IP (`/api/auth/login`, `/api/auth/register`).
+  - `interactionLimiter`: 100 requests per 15 minutes per IP (`/api/interactions`).
+- **Django Recommender Rate Limits**:
+  - `RecommendationRateThrottle`: 100 requests per minute per IP / JWT token (`/api/recommendations/`, `/api/affinity/`, `/api/homepage-layout/`).
+  - `429 Too Many Requests`: Returned when rate limit thresholds are exceeded.
+
 ### Authentication & IDOR Contract Rules
 - **Guest / Anonymous Requests**: If no `Authorization` JWT header and no `user_id` parameter are supplied, endpoints return cold-start guest recommendations or non-user guest session recommendations (`session_token`).
 - **Authenticated User Requests**: Passing a `user_id` query/URL parameter **MUST** be accompanied by a valid `Authorization: Bearer <token>` signed with `JWT_SECRET`. The claims in the JWT token are verified, and the token's `user_id` claim **MUST** match the requested `user_id`.
 - **Security Enforcement**:
   - `401 Unauthorized`: Returned if an unauthenticated `user_id` is supplied without a valid JWT token, or if the JWT token is invalid/expired.
   - `403 Forbidden`: Returned if the requested `user_id` parameter disagrees with the `id` claim in the verified JWT token (prevents user impersonation and purchase history leaks).
+
 
 | Method | Endpoint | Auth Required | Parameters / Headers | Response JSON Schema |
 | :--- | :--- | :--- | :--- | :--- |

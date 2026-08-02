@@ -57,12 +57,28 @@ def _authenticate_and_resolve_user(request, requested_user_id=None):
     return None, None
 
 
+from rest_framework.throttling import SimpleRateThrottle
+
+class RecommendationRateThrottle(SimpleRateThrottle):
+    scope = 'recommendations'
+    rate = '100/minute'
+
+    def get_cache_key(self, request, view):
+        auth_header = request.headers.get('Authorization', '')
+        if auth_header.startswith('Bearer '):
+            return f"throttle_rec_user_{auth_header[-20:]}"
+        ident = self.get_ident(request)
+        return f"throttle_rec_anon_{ident}"
+
+
 class HybridRecommendationView(APIView):
     """
     Returns Two-Stage XGBoost LTR product recommendations.
     Accepts guest sessions or verified JWT authenticated user identity.
     Rejects unauthenticated user_id IDOR attempts with 401/403.
     """
+    throttle_classes = [RecommendationRateThrottle]
+
     def get(self, request, product_id):
         top_n = int(request.query_params.get('top_n', 6))
         session_token = request.query_params.get('session_token', None)
@@ -91,6 +107,8 @@ class UserAffinityView(APIView):
     """
     Returns user category affinity breakdown. Requires verified JWT for user-level lookups.
     """
+    throttle_classes = [RecommendationRateThrottle]
+
     def get(self, request, user_id=None):
         session_token = request.query_params.get('session_token')
         
@@ -109,6 +127,8 @@ class HomepageLayoutView(APIView):
     """
     Returns personalized homepage layout carousels. Requires verified JWT for user-level lookups.
     """
+    throttle_classes = [RecommendationRateThrottle]
+
     def get(self, request, user_id=None):
         session_token = request.query_params.get('session_token')
         
