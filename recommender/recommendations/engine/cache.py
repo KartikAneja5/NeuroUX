@@ -3,12 +3,20 @@ import time
 class SimpleTTLCache:
     def __init__(self, default_ttl=300):
         """
-        A simple in-memory cache with a Time-To-Live (TTL) expiration mechanism.
-        default_ttl: time in seconds before cache expires (default 300 seconds / 5 min)
-        Note: Cache is process-level. In production, replace with Redis.
+        A process-level in-memory cache with Time-To-Live (TTL) expiration.
+        
+        ARCHITECTURE LIMITATION & PRODUCTION NOTE:
+        This cache operates strictly in-memory within a single Python process instance.
+        In multi-instance cloud deployments (e.g. horizontally scaled Render web dynos
+        or Kubernetes pods), cache entries are not shared across instances, leading to
+        potential cache skew across replicas.
+        
+        Production Path: Replace this in-memory dictionary with a centralized Redis instance
+        (e.g., redis-py / django-redis) for shared distributed caching across dynos.
         """
         self.cache = {}
         self.default_ttl = default_ttl
+
 
     def get(self, key):
         if key in self.cache:

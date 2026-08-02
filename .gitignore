@@ -35,3 +35,7 @@ server/uploads/code/*
 *.log
 .DS_Store
 Thumbs.db
+
+# Machine Learning Model Artifacts
+recommender/recommendations/engine/models/xgboost_ltr_*.json
+

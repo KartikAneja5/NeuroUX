@@ -145,15 +145,46 @@ def train_xgboost_ltr_model():
 
     ranker.fit(X_np, y_np, group=groups_np)
 
-    # Save trained model to disk
+    # 1. Prepare versioned backup path
+    import datetime
+    import shutil
+
     models_dir = os.path.join(os.path.dirname(__file__), 'models')
     os.makedirs(models_dir, exist_ok=True)
-    model_path = os.path.join(models_dir, 'xgboost_ltr.json')
+    
+    timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+    versioned_filename = f"xgboost_ltr_{timestamp}.json"
+    versioned_path = os.path.join(models_dir, versioned_filename)
+    active_path = os.path.join(models_dir, 'xgboost_ltr.json')
 
-    ranker.save_model(model_path)
-    print(f"  Successfully saved XGBoost LTR model to: {model_path}")
-    print("=" * 60)
-    return True
+    # Save versioned artifact first
+    ranker.save_model(versioned_path)
+    print(f"  [SAVED] Versioned model backup artifact: {versioned_path}")
+
+    # 2. Sanity check versioned model before promotion
+    try:
+        if not os.path.exists(versioned_path) or os.path.getsize(versioned_path) == 0:
+            raise ValueError("Versioned model file is missing or empty.")
+
+        # Test inference prediction on sample candidate vector
+        test_ranker = xgb.XGBRanker()
+        test_ranker.load_model(versioned_path)
+        sample_pred = test_ranker.predict(np.zeros((1, 10), dtype=np.float32))
+        
+        if len(sample_pred) == 0 or np.isnan(sample_pred[0]):
+            raise ValueError("Sanity check failed: model output NaN or empty prediction.")
+
+        # 3. Promote versioned model to active production model
+        shutil.copyfile(versioned_path, active_path)
+        print(f"  [PROMOTED] Model passed sanity check and promoted to active: {active_path}")
+        print("=" * 60)
+        return True
+    except Exception as sanity_err:
+        print(f"[CRITICAL ERROR] Retrained model failed sanity checks: {sanity_err}")
+        print("  Active production model 'xgboost_ltr.json' remains untouched.")
+        print("=" * 60)
+        return False
 
 if __name__ == '__main__':
     train_xgboost_ltr_model()
+
