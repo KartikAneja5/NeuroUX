@@ -5,7 +5,7 @@ require('dotenv').config();
 const SERVER_BASE_URL = process.env.SERVER_BASE_URL || 'http://localhost:5000';
 
 exports.getProducts = asyncHandler(async (req, res) => {
-  const { search, category, framework, page = 1, limit = 12 } = req.query;
+  const { search, category, framework, minPrice, maxPrice, page = 1, limit = 12 } = req.query;
 
   let queryObj = { isActive: true };
 
@@ -17,6 +17,12 @@ exports.getProducts = asyncHandler(async (req, res) => {
     queryObj.framework = framework;
   }
 
+  if (minPrice || maxPrice) {
+    queryObj.price = {};
+    if (minPrice) queryObj.price.$gte = Number(minPrice);
+    if (maxPrice) queryObj.price.$lte = Number(maxPrice);
+  }
+
   if (search) {
     queryObj.$or = [
       { name: { $regex: search, $options: 'i' } },
@@ -24,6 +30,7 @@ exports.getProducts = asyncHandler(async (req, res) => {
       { tags: { $regex: search, $options: 'i' } }
     ];
   }
+
 
   const parsedPage = parseInt(page);
   const parsedLimit = parseInt(limit);

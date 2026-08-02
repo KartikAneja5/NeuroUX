@@ -16,9 +16,11 @@ const productSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 
-// Performance indexes for fast category filtering, tag search, and regex queries
+// Performance indexes for fast category filtering, tag search, compound range filtering, and regex queries
 productSchema.index({ category: 1 });
+productSchema.index({ category: 1, price: 1 });
 productSchema.index({ tags: 1 });
 productSchema.index({ name: 'text', description: 'text', tags: 'text' });
+
 
 module.exports = mongoose.model('Product', productSchema);
