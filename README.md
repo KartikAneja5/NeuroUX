@@ -68,7 +68,31 @@ In [server/src/models/Interaction.js](file:///e:/NeuroUX/NeuroUX/server/src/mode
 
 ---
 
+## 🧪 Comprehensive Test Suite & Verification
+
+The repository features test coverage across all three stack tiers:
+
+```bash
+# 1. Server Unit & Integration Tests (Jest - 15 tests)
+cd server && npm test
+
+# 2. Django Recommender Engine Tests (Django Test Runner - 9 tests)
+cd recommender && .\.venv\Scripts\python.exe manage.py test
+
+# 3. Client React Component Tests (Vitest + RTL - 3 test suites)
+cd client && npm test
+```
+
+| Service Tier | Framework | Test Count | Key Scenarios Verified |
+| :--- | :--- | :--- | :--- |
+| **`server/`** | Jest + Supertest | **15 passed** | Auth registration, JWT verification, cart state, order checkout flow |
+| **`recommender/`** | Django Test Runner | **9 passed** | LTR candidate extraction, IDOR protection, affinity scoring, DRF rate limiting |
+| **`client/`** | Vitest + React Testing Library | **3 passed** | `ProductCard` rendering, `CartFlow` state management, `ProtectedRoute` navigation guard |
+
+---
+
 ## 📈 Model Evaluation (ML Rigor & Metrics)
+
 
 The XGBoost pairwise ranker model is evaluated on a held-out test dataset (80% train / 20% test group split) during training execution:
 
