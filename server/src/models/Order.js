@@ -13,4 +13,9 @@ const orderSchema = new mongoose.Schema({
   status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'pending' }
 }, { timestamps: true });
 
+// Performance index for /api/orders/myorders lookup
+orderSchema.index({ userId: 1 });
+orderSchema.index({ userId: 1, createdAt: -1 });
+
 module.exports = mongoose.model('Order', orderSchema);
+

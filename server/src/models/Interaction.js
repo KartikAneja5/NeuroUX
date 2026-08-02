@@ -10,4 +10,11 @@ const interactionSchema = new mongoose.Schema({
   timestamp: { type: Date, default: Date.now }
 });
 
+// Performance indexes for PyMongo queries and recommendation engine feature retrieval
+interactionSchema.index({ userId: 1 });
+interactionSchema.index({ productId: 1 });
+interactionSchema.index({ sessionToken: 1 });
+interactionSchema.index({ userId: 1, timestamp: -1 });
+
 module.exports = mongoose.model('Interaction', interactionSchema);
+
