@@ -11,53 +11,72 @@ function escapeXml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 }
 
+const categoryImageMap = {
+  'Basic UI Components': [
+    'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1555421689-491a97ff2040?auto=format&fit=crop&w=800&q=80'
+  ],
+  'Navigation Components': [
+    'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=800&q=80'
+  ],
+  'Feedback Components': [
+    'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80'
+  ],
+  'Data Display Components': [
+    'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80'
+  ],
+  'Form Components': [
+    'https://images.unsplash.com/photo-1555421689-491a97ff2040?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=800&q=80'
+  ],
+  'Dashboard Components': [
+    'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80'
+  ],
+  'E-commerce Components': [
+    'https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1556742049-0a67562479f6?auto=format&fit=crop&w=800&q=80'
+  ],
+  'Mobile App Components': [
+    'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1555774698-0b77e0d5fac6?auto=format&fit=crop&w=800&q=80'
+  ],
+  'AI Product Components': [
+    'https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80'
+  ],
+  'Landing Page Sections': [
+    'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=800&q=80'
+  ],
+  'SaaS Components': [
+    'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80'
+  ],
+  'Design Assets & Effects': [
+    'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80'
+  ],
+  'Templates & Dashboards': [
+    'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80'
+  ],
+  'UX Deliverables & Systems': [
+    'https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=800&q=80'
+  ]
+};
+
 function generateUniqueThumbnail(name, category, price, index) {
-  const hues = [270, 210, 320, 180, 250, 190, 300, 230, 280, 160, 340, 200, 260, 220, 310];
-  const hue = hues[index % hues.length];
-  const hue2 = (hue + 45) % 360;
-
-  const safeCategory = escapeXml(category);
-  const safeName = escapeXml(name.substring(0, 18).toUpperCase());
-  
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="450" viewBox="0 0 600 450">
-    <defs>
-      <linearGradient id="g${index}" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="hsl(${hue}, 75%, 10%)" />
-        <stop offset="50%" stop-color="hsl(${hue2}, 65%, 16%)" />
-        <stop offset="100%" stop-color="rgb(8, 7, 18)" />
-      </linearGradient>
-      <linearGradient id="b${index}" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="hsl(${hue}, 90%, 65%)" />
-        <stop offset="100%" stop-color="hsl(${hue2}, 90%, 65%)" />
-      </linearGradient>
-      <pattern id="p${index}" width="30" height="30" patternUnits="userSpaceOnUse">
-        <circle cx="2" cy="2" r="1.5" fill="rgba(255,255,255,0.07)" />
-      </pattern>
-    </defs>
-    <rect width="600" height="450" fill="url(#g${index})" />
-    <rect width="600" height="450" fill="url(#p${index})" />
-    
-    <!-- UI Frame Mockup -->
-    <rect x="60" y="50" width="480" height="320" rx="16" fill="rgba(12, 11, 30, 0.85)" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" />
-    <circle cx="90" cy="80" r="5.5" fill="rgb(239, 68, 68)" />
-    <circle cx="110" cy="80" r="5.5" fill="rgb(245, 158, 11)" />
-    <circle cx="130" cy="80" r="5.5" fill="rgb(16, 185, 129)" />
-    <text x="210" y="84" fill="rgba(255,255,255,0.5)" font-family="monospace" font-size="12">${safeCategory}</text>
-    
-    <!-- Component Graphic Element -->
-    <rect x="90" y="120" width="420" height="6" rx="3" fill="url(#b${index})" opacity="0.9" />
-    <rect x="90" y="145" width="280" height="16" rx="8" fill="rgba(255,255,255,0.9)" />
-    <rect x="90" y="178" width="360" height="10" rx="5" fill="rgba(255,255,255,0.35)" />
-    <rect x="90" y="200" width="310" height="10" rx="5" fill="rgba(255,255,255,0.25)" />
-    
-    <!-- Button Badge Graphic -->
-    <rect x="90" y="240" width="180" height="46" rx="12" fill="url(#b${index})" />
-    <text x="180" y="269" fill="rgb(255, 255, 255)" font-family="sans-serif" font-size="13" font-weight="bold" text-anchor="middle">${safeName}</text>
-    
-    <text x="500" y="420" fill="rgba(255,255,255,0.4)" font-family="monospace" font-size="13" font-weight="bold" text-anchor="end">₹${price}</text>
-  </svg>`;
-
-  return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+  const images = categoryImageMap[category] || [
+    'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80'
+  ];
+  return images[index % images.length];
 }
 
 const rawCatalog = [

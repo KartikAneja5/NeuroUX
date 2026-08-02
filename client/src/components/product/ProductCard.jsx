@@ -211,8 +211,12 @@ export default function ProductCard({ product, source = 'browse', onAddToCartCli
           {/* Base Thumbnail Image */}
           <motion.img
             layoutId={`product-image-${productId}`}
-            src={product.previewImageUrl || '/images/glow-glass-pricing.png'}
+            src={product.previewImageUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80'}
             alt={product.name}
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80';
+            }}
             className={`w-full h-full object-cover transition-opacity duration-300 ${
               isHovered ? 'opacity-0' : 'opacity-100 group-hover:scale-105'
             }`}
