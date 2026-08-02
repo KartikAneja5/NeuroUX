@@ -1,3 +1,13 @@
+/**
+ * ==============================================================================
+ * SIMULATED / DEMONSTRATION PAYMENT CONTROLLER
+ * ==============================================================================
+ * NOTICE: This payment controller implements a simulated payment verification flow
+ * for demonstration and testing purposes. In production, integrate full Razorpay / 
+ * Stripe webhook signatures with verified secret key management.
+ * ==============================================================================
+ */
+
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const Order = require('../models/Order');
@@ -9,10 +19,14 @@ const { generateInvoicePDF } = require('../utils/pdfInvoiceGenerator');
 const { sendInvoiceEmail } = require('../services/emailService');
 require('dotenv').config();
 
+const razorpayKeyId = process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder';
+const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET || 'placeholder_secret_key';
+
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_SHKdpANR8mxkAu',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || 'S1q1gKnNx9ETYChqIsV7Rbag'
+  key_id: razorpayKeyId,
+  key_secret: razorpayKeySecret
 });
+
 
 // Create Razorpay Order
 exports.createRazorpayOrder = asyncHandler(async (req, res) => {
@@ -35,7 +49,7 @@ exports.createRazorpayOrder = asyncHandler(async (req, res) => {
     id: razorpayOrder.id,
     amount: razorpayOrder.amount,
     currency: razorpayOrder.currency,
-    key: process.env.RAZORPAY_KEY_ID || 'rzp_test_SHKdpANR8mxkAu'
+    key: razorpayKeyId
   });
 });
 
@@ -49,7 +63,8 @@ exports.verifyRazorpayPayment = asyncHandler(async (req, res) => {
   }
 
   // Generate HMAC SHA256 expected signature
-  const secret = (process.env.RAZORPAY_KEY_SECRET || 'S1q1gKnNx9ETYChqIsV7Rbag').trim();
+  const secret = razorpayKeySecret.trim();
+
   const body = razorpay_order_id + '|' + razorpay_payment_id;
   const expectedSignature = crypto
     .createHmac('sha256', secret)

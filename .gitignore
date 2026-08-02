@@ -3,7 +3,14 @@ node_modules/
 venv/
 .venv/
 env/
+
+# Environment files & Secrets
 .env
+*.env
+.env.*
+client/.env
+server/.env
+recommender/.env
 __pycache__/
 *.pyc
 

@@ -12,7 +12,20 @@ This repository hosts a multi-service MERN + Django project for buying and selli
 
 Detailed instructions for running each service are in their respective directories.
 
-1. **Database:** Ensure MongoDB is running locally on `mongodb://localhost:27017/NeuroUX` or configure the connection strings in the respective `.env` files.
-2. **Server:** Navigate to `server/`, install dependencies with `npm install`, and run `npm run dev`.
-3. **Client:** Navigate to `client/`, install dependencies with `npm install`, and run `npm run dev`.
-4. **Recommender:** Navigate to `recommender/`, configure python virtual environment, install `requirements.txt`, run migrations, and run `python manage.py runserver`.
+## Security Configuration & Environment Setup
+
+Before running in development or production, copy `.env.example` files to `.env` in `server/`, `client/`, and `recommender/`.
+
+### Generating a Secure JWT Secret
+Never use plain text or hardcoded values for `JWT_SECRET`. Generate a cryptographically secure 256-bit secret key using either OpenSSL or Node.js:
+
+```bash
+# Using OpenSSL (recommended)
+openssl rand -base64 32
+
+# Or using Node.js crypto module
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+```
+
+Copy the generated 64-character output into `JWT_SECRET` in `server/.env`.
+

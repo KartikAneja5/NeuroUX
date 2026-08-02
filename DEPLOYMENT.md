@@ -112,10 +112,10 @@ app.use(cors({
 
 ## What's Stubbed for Demo (Declare at Viva)
 
-| Feature | Demo Stub | Production Path |
-|---------|-----------|-----------------|
+| Feature | Demo Stub / Simulated Implementation | Production Path |
+|---------|--------------------------------------|-----------------|
 | Email verification | Link printed to server console (Ethereal SMTP) | Replace with SendGrid / AWS SES |
-| Payment | Mock form, instant order | Razorpay integration |
+| Payment Gateway | Simulated payment verification flow (`paymentController.js`) | Full Razorpay / Stripe Webhook signature verification |
 | Recommendation cache | In-memory, 5-min TTL, resets on restart | Redis |
 | Site insights | Generated on-demand via management command | Celery beat / cron job |
 | A/B Test significance | 50/50 split, no significance test | VWO / Optimizely |
