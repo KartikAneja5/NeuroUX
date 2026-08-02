@@ -110,6 +110,69 @@ app.use(cors({
 
 ---
 
+## 🔄 Retraining Schedule & Automated Pipeline (Planned)
+
+To maintain high recommendation quality as new user interaction logs accrue, the Machine Learning LTR model should be retrained periodically.
+
+### Automated Retraining Workflow
+
+```
++--------------------------------------------------------------------+
+| ⏰ Scheduled Trigger (Daily Cron / Celery Beat at 02:00 UTC)        |
++--------------------------------------------------------------------+
+                                  |
+                                  v
++--------------------------------------------------------------------+
+| 📥 1. Extract Interaction Logs & Seed Features from MongoDB        |
++--------------------------------------------------------------------+
+                                  |
+                                  v
++--------------------------------------------------------------------+
+| 📊 2. Train XGBRanker & Compute Held-Out NDCG@5 Evaluation Metric  |
++--------------------------------------------------------------------+
+                                  |
+                                  v
++--------------------------------------------------------------------+
+| 💾 3. Save Timestamped Artifact (xgboost_ltr_YYYYMMDD_HHMMSS.json) |
++--------------------------------------------------------------------+
+                                  |
+                                  v
++--------------------------------------------------------------------+
+| 🧪 4. Run Inference Sanity Check (predict) on Test Sample          |
++--------------------------------------------------------------------+
+                                  |
+               +------------------+------------------+
+               | (Sanity Pass)                       | (Sanity Fail)
+               v                                     v
++-----------------------------+       +-----------------------------+
+| 🟢 Atomic Promotion to       |       | 🔴 Reject Retrained Artifact|
+| xgboost_ltr.json (No Downtime) |       | (Active Model Preserved)    |
++-----------------------------+       +-----------------------------+
+```
+
+### Setup Options
+
+#### Option A: Linux Cron Job (Render / VPS)
+Add a crontab entry to execute `train_ltr.py` every night at 2:00 AM UTC:
+```bash
+0 2 * * * cd /app/recommender && /app/recommender/.venv/bin/python recommendations/engine/train_ltr.py >> /var/log/ltr_retrain.log 2>&1
+```
+
+#### Option B: Celery Beat Scheduled Task
+In `recommender_project/celery.py`:
+```python
+from celery.schedules import crontab
+
+app.conf.beat_schedule = {
+    'retrain-xgboost-ltr-daily': {
+        'task': 'recommendations.tasks.retrain_ltr_task',
+        'schedule': crontab(hour=2, minute=0),
+    },
+}
+```
+
+---
+
 ## What's Stubbed for Demo (Declare at Viva)
 
 | Feature | Demo Stub / Simulated Implementation | Production Path |
