@@ -107,12 +107,15 @@ export default function ProductDetailsPage() {
         <div className="flex flex-col lg:flex-row gap-12 items-start">
           
           {/* Left Column - Visuals */}
-          <motion.div 
-            layoutId={`product-image-${product.id}`}
-            className="w-full lg:w-[58%] lg:sticky lg:top-24"
-          >
-            <ProductGallery productId={product.id} mainImage={product.previewImageUrl} title={product.name} />
-          </motion.div>
+            <ProductGallery 
+              productId={product.id} 
+              mainImage={product.previewImageUrl} 
+              title={product.name} 
+              category={product.category}
+              tags={product.tags}
+              code={product.code}
+            />
+
 
           {/* Right Column - Details & Actions */}
           <div className="w-full lg:w-[42%] flex flex-col gap-6">

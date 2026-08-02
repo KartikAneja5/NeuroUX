@@ -473,8 +473,121 @@ export function ClickSpark() {
   );
 }
 
-// Helper switcher component to render a preview by product id
-export default function ComponentPreviewSwitcher({ productId, productName }) {
+// 20. UNIVERSAL DYNAMIC PLAYGROUND (Guarantees 100% interactive preview coverage for every catalog asset)
+export function UniversalComponentPlayground({ title = "Interactive UI Component", category = "UI Component", tags = [] }) {
+  const [activeTab, setActiveTab] = useState(0);
+  const [count, setCount] = useState(42);
+  const [enabled, setEnabled] = useState(true);
+  const [inputValue, setInputValue] = useState("");
+  const [clicked, setClicked] = useState(false);
+
+  const handleAction = () => {
+    setClicked(true);
+    setCount(prev => prev + 1);
+    setTimeout(() => setClicked(false), 300);
+  };
+
+  return (
+    <div className="w-full max-w-md mx-auto bg-zinc-950/90 border border-white/10 rounded-2xl p-5 shadow-2xl relative overflow-hidden select-none">
+      {/* Background ambient glow */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-violet-600/10 blur-2xl pointer-events-none" />
+      
+      {/* Header spec bar */}
+      <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-4">
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="text-xs font-bold text-white tracking-wide uppercase truncate max-w-[200px]">{title}</span>
+        </div>
+        <span className="px-2.5 py-0.5 rounded-full bg-violet-600/20 text-violet-300 text-[10px] font-mono font-semibold border border-violet-500/30 shrink-0">
+          {category}
+        </span>
+      </div>
+
+      {/* Interactive Controls Playground */}
+      <div className="space-y-4">
+        {/* Toggle & State Controller */}
+        <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
+          <div className="text-xs font-medium text-zinc-300">
+            Interactive State: <span className={enabled ? "text-emerald-400 font-bold" : "text-zinc-500 font-bold"}>{enabled ? "ACTIVE" : "DISABLED"}</span>
+          </div>
+          <button 
+            type="button"
+            onClick={() => setEnabled(!enabled)}
+            className={`w-11 h-6 rounded-full p-1 transition-colors duration-300 ${enabled ? "bg-violet-600 shadow-glow-sm" : "bg-zinc-800"}`}
+          >
+            <div className={`w-4 h-4 rounded-full bg-white transition-transform duration-300 ${enabled ? "translate-x-5" : "translate-x-0"}`} />
+          </button>
+        </div>
+
+        {/* Live Input Field */}
+        <div className="relative">
+          <input 
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder="Type to test live input state..."
+            className="w-full px-3.5 py-2 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/50 transition"
+          />
+          {inputValue && (
+            <span className="absolute right-3 top-2.5 text-[10px] font-mono text-violet-400">
+              {inputValue.length} chars
+            </span>
+          )}
+        </div>
+
+        {/* Interactive Action Button & Counter */}
+        <div className="flex items-center justify-between gap-3 pt-0.5">
+          <button 
+            type="button"
+            onClick={handleAction}
+            disabled={!enabled}
+            className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-all duration-200 shadow-glow flex items-center justify-center gap-2 ${
+              clicked 
+                ? "scale-95 bg-violet-400 text-black" 
+                : enabled 
+                ? "bg-violet-600 hover:bg-violet-500 text-white active:scale-95" 
+                : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
+            }`}
+          >
+            <span>⚡ Trigger Action</span>
+            {clicked && <span className="animate-bounce">✨</span>}
+          </button>
+
+          <div className="px-3.5 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-center shrink-0">
+            <span className="text-[9px] text-zinc-500 uppercase block font-semibold">Value</span>
+            <span className="text-xs font-bold text-violet-300 font-mono">{count}</span>
+          </div>
+        </div>
+
+        {/* Interactive Tabs */}
+        <div className="flex gap-1.5 p-1 bg-zinc-900 rounded-xl border border-white/5">
+          {["Overview", "Props", "Events"].map((tab, idx) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(idx)}
+              className={`flex-1 py-1 rounded-lg text-[10px] font-semibold transition ${
+                activeTab === idx ? "bg-violet-600 text-white shadow-sm" : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab Content Display */}
+        <div className="p-3 bg-zinc-900/60 rounded-xl border border-white/5 text-[11px] text-zinc-400 min-h-[44px]">
+          {activeTab === 0 && <p className="leading-relaxed">Explorable live preview for <strong className="text-white">{title}</strong>. Click controls and hover elements live.</p>}
+          {activeTab === 1 && <p className="font-mono text-violet-300 text-[10px]">{`props: { state: "${enabled ? "active" : "disabled"}", val: ${count}, text: "${inputValue}" }`}</p>}
+          {activeTab === 2 && <p className="text-emerald-400 font-mono text-[10px]">Event: onClick triggered ({new Date().toLocaleTimeString()})</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Helper switcher component to render a preview by product id / name / category / tags
+export default function ComponentPreviewSwitcher({ productId, productName, category = "", tags = [], code = "" }) {
   const getTargetId = () => {
     if (productId && typeof productId === 'string' && !productId.match(/^[0-9a-fA-F]{24}$/)) {
       return productId.toLowerCase().trim();
@@ -482,16 +595,20 @@ export default function ComponentPreviewSwitcher({ productId, productName }) {
     if (productName) {
       return productName.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     }
-    return productId;
+    return productId || "";
   };
   const targetId = getTargetId();
+  const catLower = (category || "").toLowerCase();
+  const tagsList = Array.isArray(tags) ? tags.map(t => String(t).toLowerCase()) : [];
 
   switch (targetId) {
     case 'split-text':
       return <BlurText text="SPLIT TEXT REVEAL" duration={0.4} />;
     case 'blur-text':
+    case 'blur-text-animation':
       return <BlurText text="Blur Text Animation Reveal" duration={0.8} />;
     case 'shiny-text':
+    case 'shiny-shimmer-text':
       return <ShinyText text="Shiny Shimmer Metallic Text" />;
     case 'decrypted-text':
       return <div className="py-8"><span className="font-mono text-cyan-400 text-3xl">D3cr¥pt€d Text Reveal</span></div>;
@@ -554,37 +671,55 @@ export default function ComponentPreviewSwitcher({ productId, productName }) {
     case 'click-spark':
       return <ClickSpark />;
     case 'magnet':
-      return <Magnet />;
+    case 'ripple-impact-button':
+      return <Magnet text={productName || "Hover Me (Magnetic)"} />;
     case 'animated-list':
       return <div className="w-64 mx-auto my-4"><AnimatedList /></div>;
     case 'spotlight-card':
-      return <SpotlightCard />;
+      return <SpotlightCard title={productName || "Spotlight Hover Card"} />;
     case 'decay-card':
-      return <DecayCard />;
+      return <DecayCard title={productName || "Decay Card Hover"} />;
     case 'magic-bento':
     case 'magic-bento-grid':
+    case 'bento-grid-feature-matrix':
       return (
-        <div className="w-full text-center py-8">
-          <span className="text-lg font-bold text-violet-400">🍱 Bento Grid Visualizer</span>
+        <div className="grid grid-cols-2 gap-3 w-full max-w-md mx-auto p-4 select-none">
+          <div className="bg-violet-900/20 border border-violet-500/30 p-4 rounded-xl text-center hover:bg-violet-800/30 transition">
+            <span className="text-violet-400 font-bold block text-sm">🍱 Fast Layout</span>
+            <span className="text-[10px] text-zinc-400">Flex Grid</span>
+          </div>
+          <div className="bg-cyan-900/20 border border-cyan-500/30 p-4 rounded-xl text-center hover:bg-cyan-800/30 transition">
+            <span className="text-cyan-400 font-bold block text-sm">⚡ Reactive</span>
+            <span className="text-[10px] text-zinc-400">Live State</span>
+          </div>
         </div>
       );
     case 'dock':
     case 'macos-dock':
+    case 'radial-speed-dial-menu':
+    case 'animated-breadcrumb-dock':
       return (
-        <div className="w-full text-center py-8">
-          <span className="text-lg font-bold text-violet-400">💻 macOS Interactive Dock</span>
+        <div className="flex items-center justify-center gap-3 p-3 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-xl mx-auto my-4">
+          {['🏠', '🔍', '⚙️', '🔔', '🚀'].map((icon, i) => (
+            <button key={i} className="w-10 h-10 rounded-xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center text-lg hover:scale-125 hover:-translate-y-1 transition-all">
+              {icon}
+            </button>
+          ))}
         </div>
       );
     case 'particles':
+    case 'hero-section-with-animated-canvas':
       return <div className="w-full h-48 relative"><ParticlesBg /></div>;
     case 'waves':
+    case 'liquid-ether-background-shader':
       return (
         <div className="w-full h-48 bg-[#0a0914] rounded-xl flex items-center justify-center relative overflow-hidden">
-          <span className="text-zinc-500 font-mono text-xs uppercase tracking-wider z-10">Sine Waves Background</span>
-          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-violet-500/20 to-transparent animate-pulse" />
+          <span className="text-zinc-400 font-mono text-xs uppercase tracking-wider z-10 font-bold">Liquid Ether Shader Viewport</span>
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-violet-600/30 via-cyan-500/20 to-transparent animate-pulse" />
         </div>
       );
     case 'aurora':
+    case 'luminous-light-beams':
       return <div className="w-full h-48 relative"><AuroraBg /></div>;
     case 'cyberpunk-neon-button':
       return (
@@ -636,13 +771,15 @@ export default function ComponentPreviewSwitcher({ productId, productName }) {
         </div>
       );
     case 'glow-toast-notification':
+    case 'pulsing-alert-banner':
+    case 'hologram-modal-dialog':
       return (
         <div className="py-4 flex justify-center">
           <div className="flex items-start gap-3 p-4 bg-zinc-950 border border-emerald-500/30 rounded-2xl shadow-[0_0_25px_rgba(16,185,129,0.15)] max-w-sm">
             <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-sm shrink-0">✓</div>
             <div>
-              <h4 className="text-xs font-bold text-white mb-0.5">Order Confirmed</h4>
-              <p className="text-xs text-zinc-400 leading-relaxed">Your invoice #8920 has been generated successfully.</p>
+              <h4 className="text-xs font-bold text-white mb-0.5">Notification Demo</h4>
+              <p className="text-xs text-zinc-400 leading-relaxed">Interactive alert component is active.</p>
             </div>
           </div>
         </div>
@@ -662,14 +799,66 @@ export default function ComponentPreviewSwitcher({ productId, productName }) {
           </div>
         </div>
       );
+
     default:
-      // Fallback
+      // Keyword & Tag Matchers
+      if (tagsList.includes('button') || targetId.includes('button')) {
+        return <Magnet text={productName || "Interactive Button"} />;
+      }
+      if (tagsList.includes('card') || targetId.includes('card')) {
+        return <SpotlightCard title={productName || "Interactive Card"} />;
+      }
+      if (tagsList.includes('toggle') || tagsList.includes('switch') || targetId.includes('switch')) {
+        return (
+          <div className="py-6 flex justify-center">
+            <label className="flex items-center gap-3 cursor-pointer select-none">
+              <span className="text-xs font-semibold text-zinc-300">{productName || "Toggle State"}</span>
+              <div className="w-12 h-6 rounded-full p-1 bg-violet-600 shadow-[0_0_15px_rgba(139,92,246,0.5)] border border-white/10">
+                <div className="w-4 h-4 rounded-full bg-white translate-x-6 transition-transform duration-300" />
+              </div>
+            </label>
+          </div>
+        );
+      }
+      if (tagsList.includes('input') || tagsList.includes('form') || catLower.includes('form')) {
+        return (
+          <div className="py-6 flex justify-center w-full">
+            <div className="relative w-full max-w-sm">
+              <input
+                type="text"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-violet-500 backdrop-blur-md text-sm"
+                placeholder={productName || "Type here..."}
+              />
+            </div>
+          </div>
+        );
+      }
+      if (catLower.includes('ai') || tagsList.includes('ai')) {
+        return (
+          <div className="w-full max-w-md mx-auto my-2 bg-zinc-950 border border-white/10 rounded-3xl p-5 space-y-3">
+            <div className="flex items-center gap-3 pb-2 border-b border-white/8">
+              <div className="w-7 h-7 rounded-full bg-violet-600 flex items-center justify-center font-bold text-xs">AI</div>
+              <div>
+                <h4 className="text-xs font-bold text-white">{productName || "AI Assistant"}</h4>
+                <span className="text-[9px] text-emerald-400 font-mono">Neural Stream Active</span>
+              </div>
+            </div>
+            <div className="p-3 bg-white/5 rounded-2xl border border-white/5 text-xs text-zinc-300 leading-relaxed">
+              Live AI component stream preview active.
+            </div>
+          </div>
+        );
+      }
+
+      // Universal Interactive Playground for 100% component coverage
       return (
-        <div className="p-8 text-center select-none bg-zinc-950/40 rounded-xl border border-white/5">
-          <span className="text-xl text-violet-400 font-bold mb-2 block">✨ Interactive Preview</span>
-          <p className="text-sm text-zinc-400">Click elements and explore hover states live.</p>
-        </div>
+        <UniversalComponentPlayground 
+          title={productName || "Interactive UI Component"} 
+          category={category || "UI/UX Asset"} 
+          tags={tags} 
+        />
       );
   }
 }
+
 

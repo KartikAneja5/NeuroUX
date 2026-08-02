@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiImage, FiZap } from 'react-icons/fi';
 import ComponentPreviewSwitcher from '../gallery-previews/InteractiveComponents';
 
-export default function ProductGallery({ productId, mainImage, title }) {
+export default function ProductGallery({ productId, mainImage, title, category, tags, code }) {
   const [mode, setMode] = useState('preview'); // 'preview' | 'image'
   const images = [
     mainImage,
@@ -48,8 +48,15 @@ export default function ProductGallery({ productId, mainImage, title }) {
           <div className="relative w-full h-full flex items-center justify-center bg-zinc-950 rounded-xl overflow-hidden border border-white/5 p-6">
             <div className="absolute inset-0 dot-grid-fine opacity-10 pointer-events-none" />
             <div className="relative z-10 w-full flex justify-center">
-              <ComponentPreviewSwitcher productId={productId} productName={title} />
+              <ComponentPreviewSwitcher 
+                productId={productId} 
+                productName={title} 
+                category={category} 
+                tags={tags} 
+                code={code} 
+              />
             </div>
+
             
             {/* Overlay indicators */}
             <div className="absolute top-3 left-3 bg-violet-600/15 border border-violet-500/30 px-2 py-0.5 rounded text-[9px] font-bold text-violet-300 uppercase tracking-widest flex items-center gap-1.5 animate-pulse">
