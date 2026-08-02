@@ -13,11 +13,19 @@ export default function ProductActions({ product, price, license = 'Personal Lic
 
 
   useEffect(() => {
-    if (productId) {
-      setPurchased(localStorage.getItem(`purchased_${productId}`) === 'true');
+    if (!productId) return;
+    setPurchased(localStorage.getItem(`purchased_${productId}`) === 'true');
+    const checkWishlist = () => {
       const list = JSON.parse(localStorage.getItem('neuroux_wishlist') || '[]');
       setInWishlist(list.includes(productId));
-    }
+    };
+    checkWishlist();
+    window.addEventListener('neuroux_wishlist_updated', checkWishlist);
+    window.addEventListener('storage', checkWishlist);
+    return () => {
+      window.removeEventListener('neuroux_wishlist_updated', checkWishlist);
+      window.removeEventListener('storage', checkWishlist);
+    };
   }, [productId]);
 
   const toggleWishlist = () => {
@@ -32,7 +40,9 @@ export default function ProductActions({ product, price, license = 'Personal Lic
       setInWishlist(true);
     }
     localStorage.setItem('neuroux_wishlist', JSON.stringify(newList));
+    window.dispatchEvent(new CustomEvent('neuroux_wishlist_updated', { detail: newList }));
   };
+
 
   const handleBuyNow = () => {
     if (addToCart && product) {

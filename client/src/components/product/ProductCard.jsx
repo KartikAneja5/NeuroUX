@@ -21,10 +21,18 @@ export default function ProductCard({ product, source = 'browse', onAddToCartCli
   }, [productId, source, navigate]);
 
   useEffect(() => {
-    if (productId) {
+    if (!productId) return;
+    const checkWishlist = () => {
       const list = JSON.parse(localStorage.getItem('neuroux_wishlist') || '[]');
       setInWishlist(list.includes(productId));
-    }
+    };
+    checkWishlist();
+    window.addEventListener('neuroux_wishlist_updated', checkWishlist);
+    window.addEventListener('storage', checkWishlist);
+    return () => {
+      window.removeEventListener('neuroux_wishlist_updated', checkWishlist);
+      window.removeEventListener('storage', checkWishlist);
+    };
   }, [productId]);
 
   const toggleWishlist = (e) => {
@@ -42,7 +50,9 @@ export default function ProductCard({ product, source = 'browse', onAddToCartCli
       setInWishlist(true);
     }
     localStorage.setItem('neuroux_wishlist', JSON.stringify(newList));
+    window.dispatchEvent(new CustomEvent('neuroux_wishlist_updated', { detail: newList }));
   };
+
 
   // Generate pure, live animated visual HTML inside hover iframe for 100% of catalog components
   const miniSrcDoc = useMemo(() => {

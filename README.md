@@ -140,8 +140,8 @@ sequenceDiagram
 
 | Feature | Current Demo / Implementation | Production Roadmap |
 
-| :--- | :--- | :--- |
-| **Wishlist Persistence** | Client-side `localStorage` persistence (`neuroux_wishlist`) with UI heart buttons & `/customer/wishlist` page | Server-side database persistence via MongoDB `User.wishlist` collection/array |
+| **Wishlist State** | Client-side only (`localStorage` key `neuroux_wishlist`); not synced across devices/sessions; clears on logout. No MongoDB persistence yet. | Account-synced server-side database persistence via MongoDB `User.wishlist` collection/array |
+
 
 | **Payment Gateway** | Simulated payment verification flow (`paymentController.js`) | Webhook-based signature verification with live Razorpay / Stripe gateway |
 | **Recommendation Cache** | Process-level in-memory TTL cache (`SimpleTTLCache`) | Centralized distributed Redis instance (`redis-py` / `django-redis`) |

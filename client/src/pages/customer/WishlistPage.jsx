@@ -54,14 +54,19 @@ export default function WishlistPage() {
       <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-purple-900/5 blur-[120px] pointer-events-none" />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight">
               My <span className="text-violet-400">Wishlist</span>
             </h1>
-            <p className="text-sm text-[#8b7fb5] mt-1 font-light">Your bookmarked and saved components.</p>
+            <p className="text-sm text-[#8b7fb5] mt-1 font-light">Your bookmarked and saved components for quick access.</p>
+          </div>
+          <div className="px-3 py-1.5 rounded-full bg-violet-950/70 border border-violet-500/30 text-violet-300 text-xs font-mono font-medium flex items-center gap-2 w-fit shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Saved locally on this device
           </div>
         </div>
+
 
         {wishlistProducts.length === 0 ? (
           <motion.div
