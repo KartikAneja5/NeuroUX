@@ -39,7 +39,37 @@ Copy the generated 64-character output into `JWT_SECRET` in `server/.env`.
 
 ---
 
+## 📊 10D Feature Vector & ML Model Specification
+
+The Django XGBoost pairwise ranker (`XGBRanker`) uses a 10-dimensional feature vector extracted in [recommender/recommendations/engine/feature_extractor.py](file:///e:/NeuroUX/NeuroUX/recommender/recommendations/engine/feature_extractor.py):
+
+| Index | Feature Name | Variable / Formula | Description |
+| :--- | :--- | :--- | :--- |
+| `0` | `f1_content` | `content_scores.get(candidate_pid, 0.0)` | TF-IDF cosine content similarity score |
+| `1` | `f2_collab` | `collab_scores.get(candidate_pid, 0.0)` | Collaborative co-occurrence interaction score |
+| `2` | `f3_affinity` | `user_affinity_map.get(prod_cat, 0.0)` | User's historical category affinity score |
+| `3` | `f4_cooccur` | `complementary_cats.get(prod_cat, 0.0)` | Category co-occurrence association score |
+| `4` | `f5_price_diff` | `abs(prod_price - target_price_pref) / max(...)` | Normalized price preference distance ratio |
+| `5` | `f6_rating` | `avg_rating / 5.0` | Normalized product rating score |
+| `6` | `f7_reviews` | `np.log1p(num_reviews)` | Log-transformed product review count |
+| `7` | `f8_is_comp` | `1.0 if prod_cat in complementary_cats else 0.0` | Complementary category indicator |
+| `8` | `f9_is_seed` | `1.0 if prod_cat in purchased_categories else 0.0` | Seed purchased category indicator |
+| `9` | `f10_price` | `prod_price / 2500.0` | Normalized price tier ratio |
+
+---
+
+## 📝 Behavioral Interaction Schema (`Interaction.js`)
+
+In [server/src/models/Interaction.js](file:///e:/NeuroUX/NeuroUX/server/src/models/Interaction.js), user interaction events strictly enforce the following enum values and weights:
+
+- `view` (weight: `1.0`) — User views a product details page.
+- `cart` (weight: `3.0`) — User adds a product to their shopping cart.
+- `purchase` (weight: `5.0`) — User completes an order purchase for a product.
+
+---
+
 ## 🔁 Recommendation Call Sequence & Lifecycle
+
 
 ```mermaid
 sequenceDiagram

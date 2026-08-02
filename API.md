@@ -75,7 +75,8 @@ sequenceDiagram
 
 | Method | Endpoint | Auth Required | Request Body Shape | Success Response |
 | :--- | :--- | :--- | :--- | :--- |
-| `POST` | `/api/interactions` | No | `{ productId, type: "view"|"cart_add"|"purchase", weight: 1.0 }` | `200 OK` `{ success: true }` |
+| `POST` | `/api/interactions` | No | `{ productId, type: "view"|"cart"|"purchase", weight: 1.0 }` | `200 OK` `{ success: true }` |
+
 
 ## 2. Django Recommender API Service (`recommender/recommendations/`)
 
