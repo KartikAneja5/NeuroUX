@@ -5,16 +5,34 @@ import { CartContext } from '../../context/CartContext';
 
 export default function ProductActions({ product, price, license = 'Personal License', source = 'browse', onPurchaseSuccess }) {
   const [purchased, setPurchased] = useState(false);
+  const [inWishlist, setInWishlist] = useState(false);
   const { addToCart } = useContext(CartContext) || {};
   const navigate = useNavigate();
 
-  const productId = product?.id;
+  const productId = product?.id || product?._id;
+
 
   useEffect(() => {
     if (productId) {
       setPurchased(localStorage.getItem(`purchased_${productId}`) === 'true');
+      const list = JSON.parse(localStorage.getItem('neuroux_wishlist') || '[]');
+      setInWishlist(list.includes(productId));
     }
   }, [productId]);
+
+  const toggleWishlist = () => {
+    if (!productId) return;
+    const list = JSON.parse(localStorage.getItem('neuroux_wishlist') || '[]');
+    let newList;
+    if (list.includes(productId)) {
+      newList = list.filter(id => id !== productId);
+      setInWishlist(false);
+    } else {
+      newList = [...list, productId];
+      setInWishlist(true);
+    }
+    localStorage.setItem('neuroux_wishlist', JSON.stringify(newList));
+  };
 
   const handleBuyNow = () => {
     if (addToCart && product) {
@@ -76,9 +94,21 @@ export default function ProductActions({ product, price, license = 'Personal Lic
             >
               <FiShoppingCart size={16} /> Add to Cart
             </button>
+            <button 
+              onClick={toggleWishlist}
+              className={`w-full py-3 border font-medium rounded-xl flex items-center justify-center gap-2 transition text-sm ${
+                inWishlist 
+                  ? 'bg-pink-500/20 border-pink-500/50 text-pink-300 hover:bg-pink-500/30' 
+                  : 'bg-white/5 border-white/10 text-zinc-300 hover:bg-white/10'
+              }`}
+            >
+              <span className={inWishlist ? 'text-pink-400' : 'text-zinc-400'}>♥</span>
+              {inWishlist ? 'Saved in Wishlist' : 'Save to Wishlist'}
+            </button>
           </>
         )}
       </div>
+
 
       <div className="pt-5 border-t border-white/8 space-y-2.5">
         {[
