@@ -18,6 +18,7 @@ export default function SearchResultsPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedFramework, setSelectedFramework] = useState('all');
   const [priceRange, setPriceRange] = useState('all');
+  const [personalizedBadge, setPersonalizedBadge] = useState('');
   const gridContainerRef = useRef(null);
 
   // Spotlight mouse tracker for marketplace grid
@@ -59,19 +60,24 @@ export default function SearchResultsPage() {
 
         const list = prodRes.data.products || [];
         const categoryOrder = layoutRes?.data?.categoryOrder || [];
+        const badge = layoutRes?.data?.personalizedBadge || '';
+        if (badge) setPersonalizedBadge(badge);
 
-        // Sort catalog products according to user's personalized category affinity
+        // Sort catalog products according to user's personalized category affinity (fuzzy slug matching)
         if (categoryOrder.length > 0) {
-          const catRankMap = {};
-          categoryOrder.forEach((cat, idx) => {
-            catRankMap[cat.toLowerCase()] = idx;
-          });
+          const normalizeStr = (str) => (str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          const getCatRank = (prodCategory) => {
+            const pSlug = normalizeStr(prodCategory);
+            for (let idx = 0; idx < categoryOrder.length; idx++) {
+              const orderCatSlug = normalizeStr(categoryOrder[idx]);
+              if (pSlug.includes(orderCatSlug) || orderCatSlug.includes(pSlug)) {
+                return idx;
+              }
+            }
+            return 99;
+          };
 
-          list.sort((a, b) => {
-            const rankA = catRankMap[(a.category || '').toLowerCase()] ?? 99;
-            const rankB = catRankMap[(b.category || '').toLowerCase()] ?? 99;
-            return rankA - rankB;
-          });
+          list.sort((a, b) => getCatRank(a.category) - getCatRank(b.category));
         }
 
         setProducts(list.map(p => ({ ...p, id: p._id })));
@@ -135,6 +141,12 @@ export default function SearchResultsPage() {
         
         {/* Header */}
         <div className="mb-8">
+          {personalizedBadge && (
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-300 text-xs font-semibold mb-3 backdrop-blur-md">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>{personalizedBadge}</span>
+            </div>
+          )}
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-2">
             Search <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400">Marketplace</span>
           </h1>

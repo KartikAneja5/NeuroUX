@@ -7,7 +7,7 @@
     "seed:db": "npm run seed --prefix server",
     "start:client": "npm run dev --prefix client",
     "start:server": "npm run dev --prefix server",
-    "start:recommender": "cd recommender && .\\.venv\\Scripts\\python.exe manage.py runserver 8000",
+    "start:recommender": "python recommender/manage.py runserver 8000 --noreload",
 
     "dev": "npx concurrently \"npm run start:client\" \"npm run start:server\" \"npm run start:recommender\""
   },

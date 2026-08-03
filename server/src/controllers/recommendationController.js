@@ -21,10 +21,15 @@ exports.getRecommendations = asyncHandler(async (req, res) => {
   }
 
   const sessionToken = req.query.session_token || '';
+  const headers = {};
+  if (req.headers.authorization) {
+    headers.authorization = req.headers.authorization;
+  }
 
   try {
     const response = await axios.get(`${RECOMMENDER_URL}/api/recommend/${id}/`, {
-      params: { user_id: userId, session_token: sessionToken, top_n: limit }
+      params: { user_id: userId, session_token: sessionToken, top_n: limit },
+      headers
     });
 
     const recommendations = response.data.recommendations || [];
@@ -73,10 +78,16 @@ exports.getHomepageLayout = asyncHandler(async (req, res) => {
     } catch (err) {}
   }
 
+  const headers = {};
+  if (req.headers.authorization) {
+    headers.authorization = req.headers.authorization;
+  }
+
   try {
     const endpoint = userId ? `${RECOMMENDER_URL}/api/homepage-layout/${userId}/` : `${RECOMMENDER_URL}/api/homepage-layout/`;
     const response = await axios.get(endpoint, {
-      params: { session_token: sessionToken }
+      params: { session_token: sessionToken },
+      headers
     });
 
     res.json(response.data);
@@ -96,8 +107,12 @@ exports.getHomepageLayout = asyncHandler(async (req, res) => {
 
 // Phase 4 Proxy: Aggregate Site Insights (Layer 2)
 exports.getSiteInsights = asyncHandler(async (req, res) => {
+  const headers = {};
+  if (req.headers.authorization) {
+    headers.authorization = req.headers.authorization;
+  }
   try {
-    const response = await axios.get(`${RECOMMENDER_URL}/api/site-insights/`);
+    const response = await axios.get(`${RECOMMENDER_URL}/api/site-insights/`, { headers });
     res.json(response.data);
   } catch (error) {
     console.error('Error proxying site insights:', error.message);
